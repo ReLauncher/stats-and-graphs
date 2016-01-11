@@ -1,4 +1,7 @@
 library(lubridate)
+library("caret")
+library(RCurl)
+require(scales)
 
 filterEvaluation <- function(data){
 	data <- data[data$re_evaluation != -1,]
@@ -20,7 +23,7 @@ predictEvaluation <- function(data){
 	data <- filterEvaluation(data)
 	training <- prepareTrainingSet(data)
 	modFit <-train(re_evaluation ~ ., method="rpart", data = training)
-	print(modFit$finalModel)
+	#print(modFit$finalModel)
 	#plot(modFit$finalModel, uniform = TRUE, main = "Classification tree")
 	#text(modFit$finalModel, use.n = TRUE, all = TRUE, cex = 0.8)
 }
@@ -60,6 +63,7 @@ reformatExperimentData <- function(data){
 	data$X_unit_id <- factor(data$X_unit_id, levels = data$X_unit_id)
 	data$X_worker_id <-as.character(substring(data$X_worker_id,5,8))
 	data$re_unit_number <- as.numeric(rownames(data))
+	
 	data
 
 }

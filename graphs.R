@@ -114,7 +114,7 @@ plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
 	while(i < length(x)){
 		i<- i+1
 		if (x[i]>yy[length(y_indexes)]){
-			y_indexes[length(y_indexes)+1]<- i
+			y_indexes[length(y_indexes)+1] <- i
 			yy[length(y_indexes)] <- x[i]
 		}
 	}
@@ -124,7 +124,6 @@ plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
 	intercept <-round(hypothesis1.lm$coefficients['(Intercept)'],3)
 	df = data.frame(yy, y_indexes)
 
-	
 	hist_plot <- ggplot()
 	#hist_plot <- hist_plot + scale_y_continuous(limit = c(0.6,1))
 	#hist_plot <- hist_plot + scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100))

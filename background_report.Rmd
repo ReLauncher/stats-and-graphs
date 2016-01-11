@@ -8,10 +8,9 @@ Include libraries and settings
 
 ```{r echo=FALSE}
 source("graphs.R")
-library(RCurl)
-require(scales)
-library("caret")
 source("collect_experiments.R")
+
+
 ```
 
 We get a list of links to experiments results:
@@ -24,15 +23,20 @@ experiments$evaluation_url <- as.character(experiments$evaluation_url)
 
 ## Experiments:
 
-```{r results='asis', echo=FALSE, fig.keep='all',fig.width=24, fig.height=8}
-execution_data <- FALSE
+```{r echo=FALSE, fig.keep='all',fig.width=24, fig.height=8}
+
+title <- "empty"
 for (i in 1:nrow(experiments)){
 	experiment <- collectFromGoogleSpreadsheet(experiments[i,"evaluation_url"])
 	experiment <- reformatExperimentData(experiment)
 	experiment <- filterEvaluation(experiment)
-
-	print(experiments[i,c("title","condition")])
-
+	if (title != experiments[i,"title"])
+	{
+		title <- experiments[i,"title"]
+		print(paste("####",title, sep=" "))
+	}
+	condition <- experiments[i,"condition"]
+	print(condition)
 	gr1 <- plotTimeline(experiment)
 	gr2 <- plotHistogram(experiment)
 	gr3 <- plotDotsDurationVSIndexAccuracy(experiment)
