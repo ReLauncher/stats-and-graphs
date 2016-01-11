@@ -9,6 +9,7 @@ Include libraries and settings
 ```{r echo=FALSE}
 source("graphs.R")
 source("collect_experiments.R")
+options( warn = -1 )
 ```
 
 We get a list of links to experiments results:
@@ -21,23 +22,25 @@ experiments$evaluation_url <- as.character(experiments$evaluation_url)
 
 ## Experiments:
 
-```{r echo=FALSE, fig.keep='all',fig.width=24, fig.height=8}
+```{r echo=FALSE, fig.keep='all',fig.width=18, fig.height=18}
 
 title <- "empty"
-for (i in 1:nrow(experiments)){
-	experiment <- collectFromGoogleSpreadsheet(experiments[i,"evaluation_url"])
-	experiment <- reformatExperimentData(experiment)
-	experiment <- filterEvaluation(experiment)
-	if (title != experiments[i,"title"])
-	{
-		title <- experiments[i,"title"]
-		print(paste("####",title, sep=" "))
-	}
-	gr1 <- plotTimeline(experiment)
-	gr2 <- plotHistogram(experiment)
-	gr3 <- plotDotsDurationVSIndexAccuracy(experiment)
 
-	gr <- multiplot(gr1, gr2, gr3, cols=3)
-	print(gr)
+for (i in 0:2){
+	title <- experiments[i*3+1,"title"]
+	print(paste("####",title, sep=" "))
+	gr <- list()
+	for (j in 0:2){
+		index <- (i * 3) + j + 1
+
+		experiment <- collectFromGoogleSpreadsheet(experiments[index,"evaluation_url"])
+		experiment <- reformatExperimentData(experiment,experiments[index,"title"],experiments[index,"job_id"],experiments[index,"condition"])
+		experiment <- filterEvaluation(experiment)
+		gr[[j*3+1]] <- plotTimeline(experiment)
+		gr[[j*3+2]] <- plotHistogram(experiment)
+		gr[[j*3+3]] <- plotDotsDurationVSIndexAccuracy(experiment)
+	}
+	mp <- multiplot(plotlist = gr, cols = 3)
+	print(mp)
 }
 ```

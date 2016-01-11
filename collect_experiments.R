@@ -37,12 +37,12 @@ collectFromGoogleSpreadsheet <- function(google_spreadsheet_url){
 	experiments <- read.csv(export_url,na.strings=c("NA",""))
 	experiments
 }
-reformatExperimentData <- function(data){
+reformatExperimentData <- function(data, job_id = "0", title = "task", condition = condition){
 	dumb_start_time <- as.POSIXct("01/01/2015 00:00:00", format='%m/%d/%Y %H:%M:%S')
 
-	data$re_job_id <- experiments[i,"job_id"]
-	data$re_task <- experiments[i,"title"]
-	data$re_condition <- experiments[i,"condition"]
+	data$re_job_id <- job_id
+	data$re_task <- title
+	data$re_condition <- condition
 
 	data$execution_end <- mdy_hms(data$X_created_at)
 	data$execution_start <- mdy_hms(data$X_started_at)
