@@ -31,19 +31,31 @@ We get a list of links to experiments results:
 
 ```
 ## [1] "#### ImageLabeling"
-## [1] 1.1
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ```
 ## NULL
-## [1] 2.1
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 ```
 ## NULL
-## [1] 3.1
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-2.png) 
@@ -51,21 +63,33 @@ We get a list of links to experiments results:
 ```
 ## NULL
 ## [1] "#### Transcription"
-## [1] 1.2
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-3.png) 
 
 ```
 ## NULL
-## [1] 2.2
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-4.png) 
 
 ```
 ## NULL
-## [1] 3.2
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-5.png) 
@@ -73,21 +97,33 @@ We get a list of links to experiments results:
 ```
 ## NULL
 ## [1] "#### BusinessAddress"
-## [1] 1.3
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-6.png) 
 
 ```
 ## NULL
-## [1] 2.3
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-7.png) 
 
 ```
 ## NULL
-## [1] 3.3
+```
+
+```
+## Scale for 'fill' is already present. Adding another scale for 'fill',
+## which will replace the existing scale.
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-8.png) ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-9.png) 

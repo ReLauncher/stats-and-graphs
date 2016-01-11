@@ -5,7 +5,7 @@ require(scales)
 
 filterEvaluation <- function(data){
 	data <- data[data$re_evaluation != -1,]
-	data[data$re_evaluation == 2,]$re_evaluation = 1
+	#data[data$re_evaluation == 2,]$re_evaluation = 1
 	data$re_evaluation <- as.factor(data$re_evaluation)
 	data
 	#data$re_evaluation_reason <- "test"

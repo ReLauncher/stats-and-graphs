@@ -9,8 +9,6 @@ Include libraries and settings
 ```{r echo=FALSE}
 source("graphs.R")
 source("collect_experiments.R")
-
-
 ```
 
 We get a list of links to experiments results:
@@ -35,12 +33,10 @@ for (i in 1:nrow(experiments)){
 		title <- experiments[i,"title"]
 		print(paste("####",title, sep=" "))
 	}
-	condition <- experiments[i,"condition"]
-	print(condition)
 	gr1 <- plotTimeline(experiment)
 	gr2 <- plotHistogram(experiment)
 	gr3 <- plotDotsDurationVSIndexAccuracy(experiment)
-	
+
 	gr <- multiplot(gr1, gr2, gr3, cols=3)
 	print(gr)
 }

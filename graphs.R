@@ -13,6 +13,18 @@ source("secret.R")
 # limit_left <- as.POSIXct("01/01/2015 00:00:00", format='%m/%d/%Y %H:%M:%S')
 # limit_right <- as.POSIXct("01/01/2015 02:00:00", format='%m/%d/%Y %H:%M:%S')
 
+#cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+#scale_fill_manual(values=cbPalette)
+#scale_colour_manual(values=cbPalette)
+
+#myColors <- brewer.pal(5,"Set1")
+#names(myColors) <- levels(c("0","1","2","3","-1"))
+#colScale <- scale_colour_manual(name = "re_evaluation",values = myColors)
+evaluation_color <- scale_colour_manual(
+  values = c("-1" = "blue", "0" = "red","1" = "black","2" = "grey"))
+evaluation_fill <- scale_fill_manual(
+  values = c("-1" = "blue", "0" = "red","1" = "black","2" = "grey"))
+
 theme_settings <- theme(
 	text = element_text(size=8, color = "black"), 
 	title = element_text(size=12),
@@ -65,6 +77,8 @@ plotTimeline <- function(data, width = 20, height = 5, faceting = F,
 	
 	# APPLY THEMES TO GRAPH
 	graph_timeline <- graph_timeline + theme_settings
+	graph_timeline <- graph_timeline + evaluation_fill
+	
 	
 	# CONSTRACT A FILENAME
 	destfile = paste(GRAPHS_FOLDER,"/timeline_",timeline_data[1,'task'],".pdf", sep="")
@@ -90,6 +104,7 @@ plotHistogram<- function(data, width = 10, height = 5){
 	#hist_plot <- hist_plot + scale_fill_discrete(name="Worker ID")
 	#hist_plot <- hist_plot + facet_grid(units ~ .)
 	hist_plot <- hist_plot + theme_settings
+	hist_plot <- hist_plot + evaluation_fill
 	#hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
 	
 	# hist_plot
@@ -140,6 +155,7 @@ plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
 	hist_plot <- hist_plot + scale_x_continuous(breaks = c(50*0:6))
 	hist_plot <- hist_plot + xlab("Assignments index") + ylab("Assignments duration, seconds")
 	hist_plot <- hist_plot + theme_settings
+	hist_plot <- hist_plot + evaluation_color
 	#hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
 	
 	#hist_plot <- hist_plot + stat_smooth()
@@ -196,7 +212,6 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     # Set up the page
     grid.newpage()
     pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-
     # Make each plot, in the correct location
     for (i in 1:numPlots) {
       # Get the i,j matrix positions of the regions that contain this subplot
