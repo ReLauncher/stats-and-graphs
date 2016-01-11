@@ -41,6 +41,7 @@ plotTimeline <- function(data, width = 20, height = 5, faceting = F,
 
 	# FORMULATE DATASET ACCORDING TO INPUT PARAMETERS
 	timeline_data = data
+	timeline_data$tl_bar_color = timeline_data[,tl_bar_color]
 	timeline_data$tl_bar_detail = timeline_data[,tl_bar_detail]
 	timeline_data$tl_bar_start = timeline_data[,tl_bar_start]
 	timeline_data$tl_bar_end = timeline_data[,tl_bar_end]
