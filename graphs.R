@@ -89,7 +89,8 @@ plotHistogram<- function(data, width = 10, height = 5){
 	#hist_plot <- hist_plot + ggtitle(paste("Execution of the task id=",data[1,"job_id"], " on ", data[1,"platform"], sep=""))
 	#hist_plot <- hist_plot + scale_fill_discrete(name="Worker ID")
 	#hist_plot <- hist_plot + facet_grid(units ~ .)
-	hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
+	hist_plot <- hist_plot + theme_settings
+	#hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
 	
 	# hist_plot
 	# save the plot into the file
@@ -139,8 +140,8 @@ plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
 	#hist_plot <- hist_plot + geom_abline(intercept = slope*nrow(data)+intercept, slope = 0, color = 'red')
 	hist_plot <- hist_plot + scale_x_continuous(breaks = c(50*0:6))
 	hist_plot <- hist_plot + xlab("Assignments index") + ylab("Assignments duration, seconds")
-	
-	hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
+	hist_plot <- hist_plot + theme_settings
+	#hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
 	
 	#hist_plot <- hist_plot + stat_smooth()
 	#hist_plot <- hist_plot + geom_rect(color = "black", aes(fill = worker_id, xmin = execution_relative_end - duration, xmax = execution_relative_end, y = unit_id, ymin = unit_number - 0.45  , ymax = unit_number + 0.45))
@@ -159,4 +160,51 @@ plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
 	# save the plot into the file
 	# ggsave(hist_plot, file=destfile, width=width, height=height)
 	hist_plot
+}
+
+
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
 }

@@ -12,8 +12,6 @@ library(RCurl)
 require(scales)
 library("caret")
 source("collect_experiments.R")
-library(downloader)
-library(lubridate)
 ```
 
 We get a list of links to experiments results:
@@ -26,7 +24,7 @@ experiments$evaluation_url <- as.character(experiments$evaluation_url)
 
 ## Experiments:
 
-```{r results='asis', echo=FALSE, fig.keep='all'}
+```{r results='asis', echo=FALSE, fig.keep='all',fig.width=24, fig.height=8}
 execution_data <- FALSE
 for (i in 1:nrow(experiments)){
 	experiment <- collectFromGoogleSpreadsheet(experiments[i,"evaluation_url"])
@@ -34,13 +32,12 @@ for (i in 1:nrow(experiments)){
 	experiment <- filterEvaluation(experiment)
 
 	print(experiments[i,c("title","condition")])
-	print("***")
-	gr <- plotTimeline(experiment)
-	print(gr)
-	gr <- plotHistogram(experiment)
-	print(gr)
-	gr <- plotDotsDurationVSIndexAccuracy(experiment)
-	print(gr)	
+
+	gr1 <- plotTimeline(experiment)
+	gr2 <- plotHistogram(experiment)
+	gr3 <- plotDotsDurationVSIndexAccuracy(experiment)
 	
+	gr <- multiplot(gr1, gr2, gr3, cols=3)
+	print(gr)
 }
 ```

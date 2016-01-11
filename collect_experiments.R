@@ -1,3 +1,5 @@
+library(lubridate)
+
 filterEvaluation <- function(data){
 	data <- data[data$re_evaluation != -1,]
 	data[data$re_evaluation == 2,]$re_evaluation = 1
