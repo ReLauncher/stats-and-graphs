@@ -1,0 +1,46 @@
+---
+title: "Background Report"
+author: "Pavel"
+output: pdf_document
+---
+
+Include libraries and settings
+
+```{r echo=FALSE}
+source("graphs.R")
+library(RCurl)
+require(scales)
+library("caret")
+source("collect_experiments.R")
+library(downloader)
+library(lubridate)
+```
+
+We get a list of links to experiments results:
+
+```{r echo=FALSE}
+GOOGLE_SPREADSHEET_URL <-"https://docs.google.com/spreadsheets/d/1DR4_TytGVSE-KyaZGiSpRmd8Ep-wMotK1JxPcPkNBXg/edit#gid=0"
+experiments <- collectFromGoogleSpreadsheet(GOOGLE_SPREADSHEET_URL)
+experiments$evaluation_url <- as.character(experiments$evaluation_url)
+```
+
+## Experiments:
+
+```{r results='asis', echo=FALSE, fig.keep='all'}
+execution_data <- FALSE
+for (i in 1:nrow(experiments)){
+	experiment <- collectFromGoogleSpreadsheet(experiments[i,"evaluation_url"])
+	experiment <- reformatExperimentData(experiment)
+	experiment <- filterEvaluation(experiment)
+
+	print(experiments[i,c("title","condition")])
+	print("***")
+	gr <- plotTimeline(experiment)
+	print(gr)
+	gr <- plotHistogram(experiment)
+	print(gr)
+	gr <- plotDotsDurationVSIndexAccuracy(experiment)
+	print(gr)	
+	
+}
+```

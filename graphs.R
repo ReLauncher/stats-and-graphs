@@ -23,12 +23,13 @@ theme_settings <- theme(
 	axis.title.y=element_text(vjust=1.5)) + 
 	theme(legend.position="top")
 
-plotTimeline <- function(data, filename, width = 20, height = 5, faceting = F, 
-	tl_bar_detail = "worker_id", 
-	tl_bar_start = "execution_relative_start",
-	tl_bar_end = "execution_relative_end",	
-	tl_y = "unit_id",	
-	tl_y_coord = "unit_number",	
+plotTimeline <- function(data, width = 20, height = 5, faceting = F, 
+	tl_bar_detail = "X_worker_id", 
+	tl_bar_color = "re_evaluation", 
+	tl_bar_start = "re_execution_relative_start",
+	tl_bar_end = "re_execution_relative_end",	
+	tl_y = "X_unit_id",	
+	tl_y_coord = "re_unit_number",	
 	tl_facet_a = "platform",	
 	tl_facet_b = "variation",	
 	tl_breaks_major = "10 min",
@@ -48,8 +49,8 @@ plotTimeline <- function(data, filename, width = 20, height = 5, faceting = F,
 
 	# FORM GRAPH
 	graph_timeline <- ggplot(timeline_data)
-	graph_timeline <- graph_timeline + geom_rect(color = "white", aes(fill = tl_bar_detail, xmin = tl_bar_start, xmax = tl_bar_end, y = tl_y, ymin = tl_y_coord - 0.475  , ymax = tl_y_coord + 0.475))
-	graph_timeline <- graph_timeline + geom_text(data=timeline_data, aes(x= execution_relative_end - (duration_num/2), y=unit_id, label=tl_bar_detail), size=2,color = "black")
+	graph_timeline <- graph_timeline + geom_rect(color = "white", aes(fill = tl_bar_color, xmin = tl_bar_start, xmax = tl_bar_end, y = tl_y, ymin = tl_y_coord - 0.475  , ymax = tl_y_coord + 0.475))
+	graph_timeline <- graph_timeline + geom_text(data=timeline_data, aes(x= tl_bar_end - (re_duration_num/2), y=tl_y, label=tl_bar_detail), size=2,color = "black")
 	graph_timeline <- graph_timeline + scale_x_datetime(breaks = date_breaks(tl_breaks_major), minor_breaks = date_breaks(tl_breaks_minor),labels = date_format(tl_breaks_format))
 	graph_timeline <- graph_timeline + xlab(tl_title_x) + ylab(tl_title_y)
 	graph_timeline <- graph_timeline + scale_fill_discrete(name=tl_bar_start,guide=FALSE)
@@ -65,9 +66,96 @@ plotTimeline <- function(data, filename, width = 20, height = 5, faceting = F,
 	graph_timeline <- graph_timeline + theme_settings
 	
 	# CONSTRACT A FILENAME
-	destfile = paste(GRAPHS_FOLDER,"/timeline_",timeline_data[1,'job_id'],".pdf", sep="")
+	destfile = paste(GRAPHS_FOLDER,"/timeline_",timeline_data[1,'task'],".pdf", sep="")
 	
 	# SAVE GRAPH INTO THE FILE
 	ggsave(graph_timeline, file=destfile, width=width, height=height)
-	print(paste("Graph created: ",destfile, sep=" "))
+	# print(paste("Graph created: ",destfile, sep=" "))
+	graph_timeline
+}
+
+plotHistogram<- function(data, width = 10, height = 5){
+	
+	hist_plot <- ggplot(data, aes(x=re_duration_num))
+	#hist_plot <- hist_plot + geom_histogram(binwidth=5, colour="black", fill="white")
+	hist_plot <- hist_plot + geom_histogram(aes(y=..density.., fill = re_evaluation),alpha =0.8, binwidth = 10)
+	hist_plot <- hist_plot + scale_x_continuous(breaks = c(125*0:8))
+	#hist_plot <- hist_plot + scale_x_continuous(breaks=seq(0,max(data$this_column_to_use),by=25))
+	#hist_plot <- hist_plot + geom_rect(color = "black", aes(fill = worker_id, xmin = execution_relative_end - duration, xmax = execution_relative_end, y = unit_id, ymin = unit_number - 0.45  , ymax = unit_number + 0.45))
+	#hist_plot <- hist_plot+ geom_text(data=data, aes(x= execution_relative_end - (duration/2), y=unit_id, label=worker_id), size=3,color = "black")
+	#hist_plot <- hist_plot + scale_x_datetime(breaks = date_breaks("2 min"), minor_breaks = date_breaks("1 min"),labels = date_format("%H:%M"), limit = c(limit_left,limit_left+10*60))
+	hist_plot <- hist_plot + xlab("Assignments duration, seconds") + ylab("Density")
+	#hist_plot <- hist_plot + ggtitle(paste("Execution of the task id=",data[1,"job_id"], " on ", data[1,"platform"], sep=""))
+	#hist_plot <- hist_plot + scale_fill_discrete(name="Worker ID")
+	#hist_plot <- hist_plot + facet_grid(units ~ .)
+	hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
+	
+	# hist_plot
+	# save the plot into the file
+
+	# CONSTRACT A FILENAME
+	destfile = paste(GRAPHS_FOLDER,"/histogram_",data[1,'task'],".pdf", sep="")
+	
+	#ggsave(hist_plot, file=destfile, width=width, height=height)
+	hist_plot
+}
+plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
+	#data$this_column_to_use <- data[,field]
+	data <- data[order(data$re_execution_relative_end),] 
+	data$index <- c(1:nrow(data))
+	x <- data$re_duration_num
+	indexes <- c(1:nrow(data))
+	i <-1
+	yy <-c()
+	yy[1] <- x[1]
+	y_indexes <-c(1)
+	while(i < length(x)){
+		i<- i+1
+		if (x[i]>yy[length(y_indexes)]){
+			y_indexes[length(y_indexes)+1]<- i
+			yy[length(y_indexes)] <- x[i]
+		}
+	}
+
+	hypothesis1.lm = lm(yy ~ y_indexes)
+	slope <-round(hypothesis1.lm$coefficients['y_indexes'],3)
+	intercept <-round(hypothesis1.lm$coefficients['(Intercept)'],3)
+	df = data.frame(yy, y_indexes)
+
+	
+	hist_plot <- ggplot()
+	#hist_plot <- hist_plot + scale_y_continuous(limit = c(0.6,1))
+	#hist_plot <- hist_plot + scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100))
+	#hist_plot <- hist_plot + geom_histogram(binwidth=5, colour="black", fill="white")
+	#hist_plot <- hist_plot + geom_point(data=data, aes(index,duration_num), color =rgb(red= 58,green=145,blue= 255, maxColorValue = 255))
+	hist_plot <- hist_plot + geom_point(data=data, aes(index,re_duration_num, color = re_evaluation))
+	#hist_plot <- hist_plot + geom_point(data=df, aes(y_indexes, yy))
+	#hist_plot <- hist_plot + scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100))
+	## 43, 45
+	#hist_plot <- hist_plot + geom_text(data=df, x=83,y=355, label=paste('duration = ',slope,'index + ',intercept,sep=''),size=5,fontface=3) #color = rgb(red= 58,green=145,blue= 255, maxColorValue = 255)
+	#hist_plot <- hist_plot + geom_text(data=df, x=89,y=slope*nrow(data)+intercept+47, label=paste('max duration limit = ',round(slope*nrow(data)+intercept),' seconds',sep=''),size=5,fontface=3) #,color = 'red'
+	#hist_plot <- hist_plot + geom_abline(intercept = intercept, slope = slope) #, color = rgb(red= 58,green=145,blue= 255, maxColorValue = 255)
+	#hist_plot <- hist_plot + geom_abline(intercept = slope*nrow(data)+intercept, slope = 0, color = 'red')
+	hist_plot <- hist_plot + scale_x_continuous(breaks = c(50*0:6))
+	hist_plot <- hist_plot + xlab("Assignments index") + ylab("Assignments duration, seconds")
+	
+	hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
+	
+	#hist_plot <- hist_plot + stat_smooth()
+	#hist_plot <- hist_plot + geom_rect(color = "black", aes(fill = worker_id, xmin = execution_relative_end - duration, xmax = execution_relative_end, y = unit_id, ymin = unit_number - 0.45  , ymax = unit_number + 0.45))
+	#hist_plot <- hist_plot+ geom_text(data=data, aes(x= execution_relative_end - (duration/2), y=unit_id, label=worker_id), size=3,color = "black")
+	#hist_plot <- hist_plot + scale_x_datetime(breaks = date_breaks("5 min"), minor_breaks = date_breaks("1 min"),labels = date_format("%H:%M"))
+	#hist_plot <- hist_plot + xlab("Units amount") + ylab("Workers/Units")
+
+	#hist_plot <- hist_plot + ggtitle(paste("Execution of the task id=",data[1,"job_id"], " on ", data[1,"platform"], sep=""))
+	#hist_plot <- hist_plot + scale_fill_discrete(name="Worker ID")
+	#hist_plot <- hist_plot + facet_grid(filter ~ variation)
+	# hist_plot
+	#hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
+	# CONSTRACT A FILENAME
+	destfile = paste(GRAPHS_FOLDER,"/plot_",data[1,'task'],".pdf", sep="")
+
+	# save the plot into the file
+	# ggsave(hist_plot, file=destfile, width=width, height=height)
+	hist_plot
 }
