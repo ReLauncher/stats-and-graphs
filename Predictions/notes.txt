@@ -1,0 +1,133 @@
+The same workers perform some taks well, some tasks they cheat some they semi-cheat.
+
+May be the prediction below will work differently (better) if we focus only on CLEAR CHEATING, rather than including SEMI-CHEATING
+WHAT IF TO SPLIT INTO: (dataquality - fitness for use)
+
+- hard cheating 
+- some cheating
+- no cheating, still wrong
+- right or almost right
+
+- validation is currently done over the same data_units. better to run other (try to split 60/40)
+- see what we have for tasks with reward = 0.05 $
+- look at probabilities. If 1.0 - apply, if 0.9 and higher - send and email to a requester - and apply if he aggrees, <0.9 - do not apply. Fix an extra budget. 
+
+# Skype call with Florian:
+- talk about cheating
+- describe what features where added
+- show how certain features work for certain tasks (images)
+- show how prediction based on one task work for another (from the same type)
+- introduce new mouse-clicked-based features
+
+Model with 5% - and go on. Calculate ALPHA. Make a plot for ALPHA (from 0.05 - 1.00)
+
+# January:
+	week 4 (work on thesis, do couple of more experiments)
+# February:
+	week 1 (finish thesis, plan experiments to be carried, put meat into the TOIT paper,)
+	week 2 (perform experiments for TOIT to be reported there)
+	week 3 (report experiments into TOIT)
+
+# Questions:
+- is it fine to attach papers into thesis as they are? (Do not include papers in the final thesis)
+# ==========================================================
+          Reference
+Prediction  0  1
+         0  6  1
+         1  6 84
+
+               Accuracy : 0.9278
+                 95% CI : (0.857, 0.9705)
+    No Information Rate : 0.8763
+    P-Value [Acc > NIR] : 0.07571
+
+                  Kappa : 0.5946
+ Mcnemar's Test P-Value : 0.13057
+
+            Sensitivity : 0.50000
+            Specificity : 0.98824
+         Pos Pred Value : 0.85714 -- ALPHA Use this variable to justify
+         Neg Pred Value : 0.93333
+             Prevalence : 0.12371
+         Detection Rate : 0.06186
+   Detection Prevalence : 0.07216
+      Balanced Accuracy : 0.74412
+
+       'Positive' Class : 0
+# ==========================================================         
+          Reference
+Prediction  0  1
+         0  7  0
+         1  2 87
+
+               Accuracy : 0.9792
+                 95% CI : (0.9268, 0.9975)
+    No Information Rate : 0.9062
+    P-Value [Acc > NIR] : 0.004699
+
+                  Kappa : 0.8638
+ Mcnemar's Test P-Value : 0.479500
+
+            Sensitivity : 0.77778
+            Specificity : 1.00000
+         Pos Pred Value : 1.00000
+         Neg Pred Value : 0.97753
+             Prevalence : 0.09375
+         Detection Rate : 0.07292
+   Detection Prevalence : 0.07292
+      Balanced Accuracy : 0.88889
+
+       'Positive' Class : 0
+# ==========================================================
+Confusion Matrix and Statistics
+
+          Reference
+Prediction  0  1
+         0  3  0
+         1  9 85
+
+               Accuracy : 0.9072
+                 95% CI : (0.8312, 0.9567)
+    No Information Rate : 0.8763
+    P-Value [Acc > NIR] : 0.225099
+
+                  Kappa : 0.3688
+ Mcnemar's Test P-Value : 0.007661
+
+            Sensitivity : 0.25000
+            Specificity : 1.00000
+         Pos Pred Value : 1.00000
+         Neg Pred Value : 0.90426
+             Prevalence : 0.12371
+         Detection Rate : 0.03093
+   Detection Prevalence : 0.03093
+      Balanced Accuracy : 0.62500
+
+       'Positive' Class : 0
+# ======================================================
+Confusion Matrix and Statistics
+
+          Reference
+Prediction  0  1
+         0  8 11
+         1  4 74
+
+               Accuracy : 0.8454
+                 95% CI : (0.7578, 0.9108)
+    No Information Rate : 0.8763
+    P-Value [Acc > NIR] : 0.8590
+
+                  Kappa : 0.4296
+ Mcnemar's Test P-Value : 0.1213
+
+            Sensitivity : 0.66667
+            Specificity : 0.87059
+         Pos Pred Value : 0.42105
+         Neg Pred Value : 0.94872
+             Prevalence : 0.12371
+         Detection Rate : 0.08247
+   Detection Prevalence : 0.19588
+      Balanced Accuracy : 0.76863
+
+       'Positive' Class : 0
+# ======================================================

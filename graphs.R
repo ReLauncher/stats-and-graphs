@@ -28,22 +28,23 @@ evaluation_fill <- scale_fill_manual(
 theme_settings <- theme(
 	text = element_text(size=8, color = "black"), 
 	title = element_text(size=12),
-	axis.text.y = element_text(size=4, color = "black"),
-	axis.text.x = element_text(size=4, color = "black"), 
-	strip.text = element_text(size = 8), 
+	axis.text.y = element_text(size=8, color = "black"),
+	axis.text.x = element_text(size=8, color = "black"), 
+	strip.text = element_text(size = 14), 
 	strip.text.y = element_text(angle = 90),
 	axis.title.y=element_text(vjust=1.5)) + 
 	theme(legend.position="top")
 
 plotTimeline <- function(data, width = 20, height = 5, faceting = F, 
+	tl_bar_detail_show = T,
 	tl_bar_detail = "X_worker_id", 
 	tl_bar_color = "re_evaluation", 
 	tl_bar_start = "re_execution_relative_start",
 	tl_bar_end = "re_execution_relative_end",	
-	tl_y = "X_unit_id",	
+	tl_y = "re_unit_number",	
 	tl_y_coord = "re_unit_number",	
-	tl_facet_a = "platform",	
-	tl_facet_b = "variation",	
+	tl_facet_a = "re_condition",	
+	tl_facet_b = "re_task",	
 	tl_breaks_major = "10 min",
 	tl_breaks_minor = "5 min",
 	tl_breaks_format = "%H:%M",
@@ -52,48 +53,51 @@ plotTimeline <- function(data, width = 20, height = 5, faceting = F,
 	){
 
 	# FORMULATE DATASET ACCORDING TO INPUT PARAMETERS
-	timeline_data = data
-	timeline_data$tl_bar_color = timeline_data[,tl_bar_color]
-	timeline_data$tl_bar_detail = timeline_data[,tl_bar_detail]
-	timeline_data$tl_bar_start = timeline_data[,tl_bar_start]
-	timeline_data$tl_bar_end = timeline_data[,tl_bar_end]
-	timeline_data$tl_y = timeline_data[,tl_y]
-	timeline_data$tl_y_coord = timeline_data[,tl_y_coord]
+	timeline_data <- data
+	timeline_data$tl_bar_color <- timeline_data[,tl_bar_color]
+	timeline_data$tl_bar_detail <- timeline_data[,tl_bar_detail]
+	timeline_data$tl_bar_start <- timeline_data[,tl_bar_start]
+	timeline_data$tl_bar_end <- timeline_data[,tl_bar_end]
+	timeline_data$tl_y <- timeline_data[,tl_y]
+	timeline_data$tl_y_coord <- timeline_data[,tl_y_coord]
+	timeline_data$tl_facet_a  <- timeline_data[,tl_facet_a]
+	timeline_data$tl_facet_b  <- timeline_data[,tl_facet_b]
+
 
 	# FORM GRAPH
 	graph_timeline <- ggplot(timeline_data)
-	graph_timeline <- graph_timeline + geom_rect(color = "white", aes(fill = tl_bar_color, xmin = tl_bar_start, xmax = tl_bar_end, y = tl_y, ymin = tl_y_coord - 0.475  , ymax = tl_y_coord + 0.475))
-	graph_timeline <- graph_timeline + geom_text(data=timeline_data, aes(x= tl_bar_end - (re_duration_num/2), y=tl_y, label=tl_bar_detail), size=2,color = "black")
+	graph_timeline <- graph_timeline + geom_rect(aes(color = tl_bar_color, fill = tl_bar_color,  xmin = tl_bar_start, xmax = tl_bar_end, y = tl_y, ymin = tl_y_coord - 0.475  , ymax = tl_y_coord + 0.475))
+	if (tl_bar_detail_show){
+		graph_timeline <- graph_timeline + geom_text(data=timeline_data, aes(x= tl_bar_end - (re_duration_num/2), y=tl_y, label=tl_bar_detail), size=2,color = "black")	
+	}
 	graph_timeline <- graph_timeline + scale_x_datetime(breaks = date_breaks(tl_breaks_major), minor_breaks = date_breaks(tl_breaks_minor),labels = date_format(tl_breaks_format))
 	graph_timeline <- graph_timeline + xlab(tl_title_x) + ylab(tl_title_y)
-	graph_timeline <- graph_timeline + scale_fill_discrete(name=tl_bar_start,guide=FALSE)
+	# graph_timeline <- graph_timeline + scale_fill_discrete(name=tl_bar_start,guide=FALSE)
 	
 	# FACETING
-	if (faceting){
-		timeline_data$timeline_facet_a = timeline_data[,timeline_facet_a]
-		timeline_data$timeline_facet_b = timeline_data[,timeline_facet_b]
-		graph_timeline <- graph_timeline + facet_grid(platform ~ variation)
+	if (faceting == TRUE){
+		graph_timeline <- graph_timeline + facet_grid(tl_facet_a ~ tl_facet_b)
 	}
 	
 	# APPLY THEMES TO GRAPH
 	graph_timeline <- graph_timeline + theme_settings
-	graph_timeline <- graph_timeline + evaluation_fill
+	graph_timeline <- graph_timeline + evaluation_fill + evaluation_color
 	
 	
 	# CONSTRACT A FILENAME
 	destfile = paste(GRAPHS_FOLDER,"/timeline_",timeline_data[1,'task'],".pdf", sep="")
 	
 	# SAVE GRAPH INTO THE FILE
-	ggsave(graph_timeline, file=destfile, width=width, height=height)
+	# ggsave(graph_timeline, file=destfile, width=width, height=height)
 	# print(paste("Graph created: ",destfile, sep=" "))
 	graph_timeline
 }
 
-plotHistogram<- function(data, width = 10, height = 5){
+plotHistogram<- function(data, width = 10, height = 5, faceting = F){
 	
 	hist_plot <- ggplot(data, aes(x=re_duration_num))
 	#hist_plot <- hist_plot + geom_histogram(binwidth=5, colour="black", fill="white")
-	hist_plot <- hist_plot + geom_histogram(aes(y=..density.., fill = re_evaluation),alpha =0.8, binwidth = 10)
+	hist_plot <- hist_plot + geom_histogram(aes(y=..density.., fill = re_evaluation),alpha =0.8, binwidth = 25)
 	hist_plot <- hist_plot + scale_x_continuous(breaks = c(125*0:8))
 	#hist_plot <- hist_plot + scale_x_continuous(breaks=seq(0,max(data$this_column_to_use),by=25))
 	#hist_plot <- hist_plot + geom_rect(color = "black", aes(fill = worker_id, xmin = execution_relative_end - duration, xmax = execution_relative_end, y = unit_id, ymin = unit_number - 0.45  , ymax = unit_number + 0.45))
@@ -105,6 +109,9 @@ plotHistogram<- function(data, width = 10, height = 5){
 	#hist_plot <- hist_plot + facet_grid(units ~ .)
 	hist_plot <- hist_plot + theme_settings
 	hist_plot <- hist_plot + evaluation_fill
+	if (faceting == T){
+		hist_plot <- hist_plot + facet_grid(re_condition ~ re_task)
+	}
 	#hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
 	
 	# hist_plot
@@ -116,35 +123,20 @@ plotHistogram<- function(data, width = 10, height = 5){
 	#ggsave(hist_plot, file=destfile, width=width, height=height)
 	hist_plot
 }
-plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
+plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5, faceting = F){
 	#data$this_column_to_use <- data[,field]
-	data <- data[order(data$re_execution_relative_end),] 
-	data$index <- c(1:nrow(data))
-	x <- data$re_duration_num
-	indexes <- c(1:nrow(data))
-	i <-1
-	yy <-c()
-	yy[1] <- x[1]
-	y_indexes <-c(1)
-	while(i < length(x)){
-		i<- i+1
-		if (x[i]>yy[length(y_indexes)]){
-			y_indexes[length(y_indexes)+1] <- i
-			yy[length(y_indexes)] <- x[i]
-		}
-	}
 
-	hypothesis1.lm = lm(yy ~ y_indexes)
-	slope <-round(hypothesis1.lm$coefficients['y_indexes'],3)
-	intercept <-round(hypothesis1.lm$coefficients['(Intercept)'],3)
-	df = data.frame(yy, y_indexes)
+	#hypothesis1.lm = lm(yy ~ y_indexes)
+	#slope <-round(hypothesis1.lm$coefficients['y_indexes'],3)
+	#intercept <-round(hypothesis1.lm$coefficients['(Intercept)'],3)
+	#df = data.frame(yy, y_indexes)
 
 	hist_plot <- ggplot()
 	#hist_plot <- hist_plot + scale_y_continuous(limit = c(0.6,1))
 	#hist_plot <- hist_plot + scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100))
 	#hist_plot <- hist_plot + geom_histogram(binwidth=5, colour="black", fill="white")
 	#hist_plot <- hist_plot + geom_point(data=data, aes(index,duration_num), color =rgb(red= 58,green=145,blue= 255, maxColorValue = 255))
-	hist_plot <- hist_plot + geom_point(data=data, aes(index,re_duration_num, color = re_evaluation))
+	hist_plot <- hist_plot + geom_point(data=data, aes(re_index,re_duration_num, color = re_evaluation))
 	#hist_plot <- hist_plot + geom_point(data=df, aes(y_indexes, yy))
 	#hist_plot <- hist_plot + scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100))
 	## 43, 45
@@ -156,6 +148,9 @@ plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
 	hist_plot <- hist_plot + xlab("Assignments index") + ylab("Assignments duration, seconds")
 	hist_plot <- hist_plot + theme_settings
 	hist_plot <- hist_plot + evaluation_color
+	if (faceting == T){
+		hist_plot <- hist_plot + facet_grid(re_condition ~ re_task)
+	}
 	#hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
 	
 	#hist_plot <- hist_plot + stat_smooth()
@@ -177,6 +172,26 @@ plotDotsDurationVSIndexAccuracy <- function(data,width=10, height=5){
 	hist_plot
 }
 
+plotCumulative <- function(data, width=20, height=8, faceting = F){
+	hist_plot <- ggplot(data)
+	hist_plot <- hist_plot + geom_step(aes(x=re_execution_relative_start,y=..y..),stat="ecdf", color=rgb(red= 58,green=145,blue= 255, maxColorValue = 255))
+	hist_plot <- hist_plot + geom_step(aes(x=re_execution_relative_end,y=..y..),stat="ecdf", color="black")
+	hist_plot <- hist_plot + scale_x_datetime(breaks = date_breaks("30 min"), minor_breaks = date_breaks("15 min"),labels = date_format("%H:%M")) # , limit = c(limit_left,limit_right)
+	
+	hist_plot <- hist_plot + xlab("Time since the task launch, hours:mins") + ylab("Task completeness")
+	#hist_plot <- hist_plot + facet_grid(variation ~ condition)
+	# font size, theme settings
+	# hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=20),strip.text = element_text(size = 20), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
+	hist_plot <- hist_plot + theme_settings
+	if (faceting == T){
+		hist_plot <- hist_plot + facet_grid(re_condition ~ re_task)
+	}
+	
+	#hist_plot <- hist_plot + theme(text = element_text(size=14, color = "black"), axis.text = element_text(size=14, color = "black"), title = element_text(size=14),strip.text = element_text(size = 14), strip.text.y = element_text(angle = 90),axis.title.y=element_text(vjust=1.5)) + theme(legend.position="top")
+	# save the plot into the file
+	# ggsave(hist_plot, file=filename, width=width, height=height)
+	hist_plot
+}
 
 # Multiple plot function
 #

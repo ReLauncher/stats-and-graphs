@@ -5,7 +5,9 @@ require(scales)
 
 filterEvaluation <- function(data){
 	data <- data[data$re_evaluation != -1,]
-	#data[data$re_evaluation == 2,]$re_evaluation = 1
+	if (nrow(data[data$re_evaluation == 2,])>0){
+		data[data$re_evaluation == 2,]$re_evaluation = 1
+	}
 	data$re_evaluation <- as.factor(data$re_evaluation)
 	data
 	#data$re_evaluation_reason <- "test"
@@ -23,6 +25,7 @@ predictEvaluation <- function(data){
 	data <- filterEvaluation(data)
 	training <- prepareTrainingSet(data)
 	modFit <-train(re_evaluation ~ ., method="rpart", data = training)
+	modFit
 	#print(modFit$finalModel)
 	#plot(modFit$finalModel, uniform = TRUE, main = "Classification tree")
 	#text(modFit$finalModel, use.n = TRUE, all = TRUE, cex = 0.8)
@@ -38,7 +41,7 @@ collectFromGoogleSpreadsheet <- function(google_spreadsheet_url){
 	experiments
 }
 reformatExperimentData <- function(data, job_id = "0", title = "task", condition = condition){
-	dumb_start_time <- as.POSIXct("01/01/2015 00:00:00", format='%m/%d/%Y %H:%M:%S')
+	dumb_start_time <- as.POSIXct("07/01/2015 00:00:00", format='%m/%d/%Y %H:%M:%S')
 
 	data$re_job_id <- job_id
 	data$re_task <- title
@@ -63,7 +66,11 @@ reformatExperimentData <- function(data, job_id = "0", title = "task", condition
 	data$X_unit_id <- factor(data$X_unit_id, levels = data$X_unit_id)
 	data$X_worker_id <-as.character(substring(data$X_worker_id,5,8))
 	data$re_unit_number <- as.numeric(rownames(data))
-	
+	data$re_unit_factor <- as.factor(rownames(data))
+
+	data <- data[order(data$re_execution_relative_end),] 
+	data$re_index <- c(1:nrow(data))
+
 	data
 
 }

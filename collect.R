@@ -10,7 +10,7 @@ library(lubridate)
 
 source("secret.R")
 
-dumb_start_time <- as.POSIXct("01/01/2015 00:00:00", format='%m/%d/%Y %H:%M:%S')
+dumb_start_time <- as.POSIXct("01/01/2015 02:00:00", format='%m/%d/%Y %H:%M:%S')
 
 collectResultsCrowdFlower <- function(job_id, title = "Task", unzip = T, download = T, sep = ","){
 	destfile = paste(DATASET_FOLDER,"/",job_id,".zip", sep="")

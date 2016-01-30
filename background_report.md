@@ -31,49 +31,20 @@ We get a list of links to experiments results:
 
 ```
 ## [1] "#### ImageLabeling"
-```
-
-```
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-```
-
-```
-## NULL
+## [1] 1
+## [1] 2
+## [1] 3
+## [1] 4
 ## [1] "#### Transcription"
-```
-
-```
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-```
-
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
-
-```
-## NULL
+## [1] 5
+## [1] 6
+## [1] 7
+## [1] 8
 ## [1] "#### BusinessAddress"
+## [1] 9
+## [1] 10
+## [1] 11
+## [1] 12
 ```
 
-```
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-## Scale for 'fill' is already present. Adding another scale for 'fill',
-## which will replace the existing scale.
-```
-
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-2.png) ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-3.png) 
-
-```
-## NULL
-```
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-2.png) ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-3.png) ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-4.png) 
