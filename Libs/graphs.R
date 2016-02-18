@@ -21,9 +21,9 @@ source("secret.R")
 #names(myColors) <- levels(c("0","1","2","3","-1"))
 #colScale <- scale_colour_manual(name = "re_evaluation",values = myColors)
 evaluation_color <- scale_colour_manual(
-  values = c("-1" = "blue", "0" = "red","1" = "black","2" = "grey"))
+  values = c("-2" = "azure4", "-1" = "orange", "0" = "red","1" = "black","2" = "grey"))
 evaluation_fill <- scale_fill_manual(
-  values = c("-1" = "blue", "0" = "red","1" = "black","2" = "grey"))
+  values = c("-2" = "azure4", "-1" = "orange", "0" = "red","1" = "black","2" = "grey"))
 
 theme_settings <- theme(
 	text = element_text(size=8, color = "black"), 
@@ -38,6 +38,7 @@ theme_settings <- theme(
 plotTimeline <- function(data, width = 20, height = 5, faceting = F, 
 	tl_bar_detail_show = T,
 	tl_bar_detail = "X_worker_id", 
+	tl_bar_detail_color = "black",
 	tl_bar_color = "re_evaluation", 
 	tl_bar_start = "re_execution_relative_start",
 	tl_bar_end = "re_execution_relative_end",	
@@ -62,13 +63,13 @@ plotTimeline <- function(data, width = 20, height = 5, faceting = F,
 	timeline_data$tl_y_coord <- timeline_data[,tl_y_coord]
 	timeline_data$tl_facet_a  <- timeline_data[,tl_facet_a]
 	timeline_data$tl_facet_b  <- timeline_data[,tl_facet_b]
-
+	timeline_data$re_duration_num <- difftime(timeline_data$tl_bar_end, timeline_data$tl_bar_start, units = "secs") 
 
 	# FORM GRAPH
 	graph_timeline <- ggplot(timeline_data)
-	graph_timeline <- graph_timeline + geom_rect(aes(color = tl_bar_color, fill = tl_bar_color,  xmin = tl_bar_start, xmax = tl_bar_end, y = tl_y, ymin = tl_y_coord - 0.475  , ymax = tl_y_coord + 0.475))
+	graph_timeline <- graph_timeline + geom_rect(aes(color = tl_bar_color, fill = tl_bar_color,  xmin = tl_bar_start, xmax = tl_bar_end, y = tl_y, ymin = tl_y_coord - 0.4  , ymax = tl_y_coord + 0.4))
 	if (tl_bar_detail_show){
-		graph_timeline <- graph_timeline + geom_text(data=timeline_data, aes(x= tl_bar_end - (re_duration_num/2), y=tl_y, label=tl_bar_detail), size=2,color = "black")	
+		graph_timeline <- graph_timeline + geom_text(data=timeline_data, aes(x= tl_bar_start + (re_duration_num/2), y=tl_y_coord, label=tl_bar_detail), size=2,color = tl_bar_detail_color)	
 	}
 	graph_timeline <- graph_timeline + scale_x_datetime(breaks = date_breaks(tl_breaks_major), minor_breaks = date_breaks(tl_breaks_minor),labels = date_format(tl_breaks_format))
 	graph_timeline <- graph_timeline + xlab(tl_title_x) + ylab(tl_title_y)

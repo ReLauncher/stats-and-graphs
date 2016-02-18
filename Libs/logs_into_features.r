@@ -1,4 +1,4 @@
-source("collect_experiments.R")
+source("Libs/collect_experiments.R")
 
 prepareUnitResults <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL){
 	experiment <- collectFromGoogleSpreadsheet(GOOGLE_SPREADSHEET_URL)
@@ -76,7 +76,7 @@ prepareTabActivityLogs <- function(JOB_ID){
 
 	tabs_activity <- sqldf("\r
 		select \r
-		task_id,unit_id,assignment_id, session_id, status, sum(status_duration) as status_duration \r
+		task_id,unit_id,assignment_id, session_id, status, min(dt_start) as session_start, max(dt_start) as session_end, sum(status_duration) as status_duration \r
 		from t_data \r
 		where status != ' closed' \r
 		group by task_id, unit_id, assignment_id, session_id,status \r
@@ -146,7 +146,7 @@ prepareKeysActivityLogs <- function(JOB_ID){
 		")
 	key_activity
 }
-prepareAssignments <- function(JOB_ID){
+prepareSessions <- function(JOB_ID){
 	# ---------------------------------------
 	# BASED ON TABS ACTIVITY
 	t_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_tabs.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
@@ -169,12 +169,58 @@ prepareAssignments <- function(JOB_ID){
 
 	assignments
 }
+prepareClicksActivityLogs <- function(JOB_ID){
+	t_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_clicks.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
+	t_data$dt_start <- as.POSIXct(as.numeric(t_data$dt_start)/1000, origin="1970-01-01",tz="GMT")
+	#t_data$dt_end <- as.POSIXct(as.numeric(t_data$dt_end)/1000, origin="1970-01-01",tz="GMT")
+	#t_data$status_duration <-round(as.numeric(difftime(t_data$dt_end,t_data$dt_start, units = "secs")))
+	t_data$task_id <- as.factor(t_data$task_id)
+	t_data$unit_id <- as.factor(t_data$unit_id)
+	t_data$session_id <- as.factor(t_data$session_id)
+	t_data$element <- as.factor(t_data$element)
+
+	#t_data[t_data$status_duration<0,c("unit_id","assignment_id","session_id","status","status_duration")]
+
+	tabs_activity <- sqldf("\r
+		select \r
+		task_id,unit_id,assignment_id, IFNULL(sum(case when element like '%give-up%' then 1 else 0 end),0) as gave_up \r
+		from t_data \r
+		group by task_id, unit_id, assignment_id \r
+		")
+	tabs_activity
+	#print(tabs_activity)
+}
+prepareAssignments <- function(JOB_ID){
+	# ---------------------------------------
+	# BASED ON TABS ACTIVITY
+	t_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_page.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
+	t_data$dt_start <- as.POSIXct(as.numeric(t_data$dt_start)/1000, origin="1970-01-01",tz="GMT")
+	t_data$dt_end <- as.POSIXct(as.numeric(t_data$dt_end)/1000, origin="1970-01-01",tz="GMT")
+	t_data$status_duration <-round(as.numeric(difftime(t_data$dt_end,t_data$dt_start, units = "secs")))
+	t_data$task_id <- as.factor(t_data$task_id)
+	t_data$unit_id <- as.factor(t_data$unit_id)
+	t_data$session_id <- as.factor(t_data$session_id)
+	#t_data[t_data$status==" opened","status"] <- as.factor(" active")
+	# ---------------------------------------
+	assignments <- sqldf("\r
+		select d.*, case when d.dt_end = a.dt then 0 else 1 end as abandoned from \r
+		(select task_id, unit_id, assignment_id, min(dt_start) as dt_start, max(dt_start) as dt_end, max(dt_start) - min(dt_start) as duration \r
+			from t_data group by task_id, unit_id, assignment_id ) d \r
+		inner join (select \r 
+		task_id,unit_id, max(dt_start) as dt \r
+		from t_data \r
+		group by task_id, unit_id) a on d.unit_id = a.unit_id")
+
+	assignments
+}
+
+
 prepareFeaturesDataset <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL){
 	units <- prepareUnitResults(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL)
 	page_activity <- preparePageActivityLogs(JOB_ID)
 	tabs_activity <- prepareTabActivityLogs(JOB_ID)
 	key_activity <- prepareKeysActivityLogs(JOB_ID)
-	assignments <- prepareAssignments(JOB_ID)
+	sessions <- prepareSessions(JOB_ID)
 	
 	#		a.abandoned,\r 
 	#		and a.abandoned = 0 \r
@@ -294,9 +340,11 @@ prepareFeaturesDataset <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL){
 			case when scroll_9 = 0 then 0 else 1 end sc_bin_9,\r
 			case when scroll_10 = 0 then 0 else 1 end sc_bin_10,\r			
 			*/\r
+			ta.session_start,
+			ta.session_end,
 			e.re_execution_relative_end, \r
 			case when e.re_evaluation not null then e.re_evaluation else -10 end as re_evaluation \r
-		from assignments a\r
+		from sessions a\r
 			left join units e on abandoned = 0 and a.unit_id = e.re_unit_id
 			left join page_activity p on a.unit_id = p.unit_id and a.assignment_id = p.assignment_id and a.session_id = p.session_id
 			left join tabs_activity ta on a.unit_id = ta.unit_id and a.assignment_id = ta.assignment_id and a.session_id = ta.session_id and ta.status like '%active%'
@@ -334,11 +382,9 @@ buildModel <- function(training_set, label_is_evaluation = T, method = "rpart"){
 	fit
 }
 
-drawDecisionTree <- function(eval_fit,aband_fit, filename){
+drawDecisionTree <- function(fit,filename, title = "Decision tree"){
 	pdf(paste("Predictions/",filename,".pdf",sep=""), width=6, height=3)
-	par(mfrow=c(1,2)) # two plots on one page
-	prp(eval_fit, main = "Accuracy", extra = 1)
-	prp(aband_fit, main = "Abandonence", extra = 1)
+	prp(fit, title = "Accuracy", extra = 1)
 	dev.off()
 }
 
@@ -348,8 +394,8 @@ predictTaskAccuracy <- function(task_training, task_test){
 	
 	pred <- data.frame(alpha=NA, sensitivity=NA, specificity=NA, accuracy=NA)[numeric(), ]
 
-	size <- nrow(eval_train)
-	for(i in seq(from=0.05, to=0.95, by=0.05)){
+	size <- nrow(training_all)
+	for(i in seq(from=0.05, to=1.0, by=0.05)){
 		border_index <- floor(size * i)
 		
 		training <- training_all[seq(1,border_index),]
@@ -362,7 +408,7 @@ predictTaskAccuracy <- function(task_training, task_test){
 
 			cf <- confusionMatrix(predictions, testing$re_evaluation)
 
-			measurement <- c(i,nrow(training),nrow(testing),cf$table[1,1],cf$table[1,2],cf$table[2,1],cf$table[2,2],as.numeric(cf$overall["Accuracy"]),as.numeric(cf$byClass['Specificity']),as.numeric(cf$byClass['Sensitivity']))
+			measurement <- c(i,nrow(training),nrow(testing),cf$table[1,1],cf$table[1,2],cf$table[2,1],cf$table[2,2],round(as.numeric(cf$overall["Accuracy"]),2),round(as.numeric(cf$byClass['Specificity']),2),round(as.numeric(cf$byClass['Sensitivity']),2))
 			pred <- rbind(pred,measurement)
 		}
 		

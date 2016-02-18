@@ -1,6 +1,6 @@
 library(sqldf)
-source("graphs.R")
-source("collect_experiments.R")
+source("Libs/graphs.R")
+source("Libs/collect_experiments.R")
 
 
 prepareLogDataset <- function(JOB_ID, GOOGLE_SPREADSHEET_URL){

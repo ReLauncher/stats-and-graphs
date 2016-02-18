@@ -7,8 +7,8 @@ output: pdf_document
 Include libraries and settings
 
 ```{r echo=FALSE}
-source("graphs.R")
-source("collect_experiments.R")
+source("Libs/graphs.R")
+source("Libs/collect_experiments.R")
 options( warn = -1 )
 ```
 

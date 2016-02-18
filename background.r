@@ -1,5 +1,5 @@
-source("collect.R")
-source("graphs.R")
+source("Libs/collect.R")
+source("Libs/graphs.R")
 require(scales)
 
 task_labeling_1 <- collectResultsCrowdFlower(837728, "Labeling", F,F,";")
