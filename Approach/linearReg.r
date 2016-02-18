@@ -1,3 +1,5 @@
+require(dplyr)
+
 predictMax<- function(durations, last_index){
 	x <- durations
 	indexes <- c(1:length(durations))
@@ -52,15 +54,18 @@ summaryAlgorithm <- function(assignments_all,assignments_been_relaunched){
 		")
 	validation_summary
 }
-predictAbandonedLinear <- function(assignments_all, variable_start, variable_interval){
+predictAbandonedLinear <- function(assignments_all, variable_start, variable_interval,task_id){
 	assignments_completed <- filter(assignments_all, re_evaluation==0 | re_evaluation==1)
 	#assignments_completed <- assignments_all[assignments_all$re_evaluation == 0 || assignments_all$re_evaluation == 1,]
 
 	time_start <- min(assignments_all$re_execution_relative_start)
 	time_end <- max(assignments_all$re_execution_relative_end)
 	time_duration <- ceiling(as.numeric(difftime(time_end, time_start, units = "secs")))
+	empty_template <- assignments_all
+	empty_template$relaunched <- NA
+	empty_template$with_limit <- NA
+	assignments_been_relaunched <- empty_template[FALSE,]
 
-	assignments_been_relaunched <- assignments_all[FALSE,]
 
 	for (i in seq(variable_start*time_duration, time_duration, by=variable_interval)){
 		current_time <- time_start+i
@@ -73,16 +78,46 @@ predictAbandonedLinear <- function(assignments_all, variable_start, variable_int
 		if (length(durations_train)>0){
 			maxdur <- predictMax(durations_train,nrow(assignments_completed))
 			# ----------------------------
-			not_relaunched <- anti_join(assignments_all,assignments_been_relaunched)
+			not_relaunched <- anti_join(assignments_all,select(assignments_been_relaunched, -(relaunched:with_limit)))
 			
 			assignments_relaunched <- filter(not_relaunched, re_execution_relative_start < current_time, re_execution_relative_end > current_time, re_execution_relative_start < current_time - maxdur)
 			#print(nrow(assignments_relaunched))
 			if (nrow(assignments_relaunched) > 0){
-				#assignments_relaunched$relaunched <- i
+				assignments_relaunched$relaunched <- i
+				assignments_relaunched$with_limit <- maxdur
 				assignments_been_relaunched <- rbind(assignments_been_relaunched,assignments_relaunched)
 			}
 			#print(maxdur)
 		}
 	}
+	write.table(assignments_been_relaunched, file = paste("Approach/",task_id,"_speed_",variable_start,"_linear.csv",sep=""))
 	assignments_been_relaunched
+}
+predictAbandonedTree <- function(assignments_all, variable_start, variable_interval, task_id){
+	time_start <- min(assignments_all$re_execution_relative_start)
+	time_end <- max(assignments_all$re_execution_relative_end)
+	time_duration <- ceiling(as.numeric(difftime(time_end, time_start, units = "secs")))
+	
+	assignments_completed <- filter(assignments_all, re_execution_relative_end < time_start+variable_start)
+	empty_template <- assignments_all
+	empty_template$relaunched <- NA
+	empty_template$with_limit <- NA
+	assignments_been_relaunched <- empty_template[FALSE,]
+}
+saveTimelinePlot <- function(timeline_data, task_id, width, height){
+	tl <- plotTimeline(timeline_data, width = width, height = height, faceting = F, 
+		tl_bar_detail_show = F,
+		tl_bar_detail = "re_unit_id", 
+		tl_bar_color = "re_evaluation", 
+		tl_bar_detail_color = "green",
+		tl_y = "re_index",	
+		tl_y_coord = "re_index",	
+		tl_facet_a = "assignment_id",	
+		tl_facet_b = "assignment_id",	
+		tl_breaks_major = "10 min",
+		tl_breaks_minor = "5 min",
+		tl_breaks_format = "%H:%M",
+		tl_title_x = "Time since the task launch",
+		tl_title_y = "Unit ID")
+	ggsave(tl, file=paste("Approach/timeline_",task_id,".pdf",sep=""), width=width, height=height)
 }

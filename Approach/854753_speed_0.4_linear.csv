@@ -1,0 +1,4 @@
+"gave_up" "assignment_id" "re_unit_id" "re_execution_relative_start" "re_execution_relative_end" "re_evaluation" "re_index" "re_duration_num" "relaunched" "with_limit"
+"1" 0 " 8746a102-ad34-4fa7-99f8-bb75a29bbacd" "867849424" 2015-07-01 00:32:06 2015-07-01 00:44:30 "0" 98 744.037000179291 2578 646
+"2" 0 " 8b411476-f71e-4685-8cf7-990068aac1b4" "867849383" 2015-07-01 00:35:40 2015-07-01 01:05:40 "-1" 100 1800 2788 646
+"3" 0 " 9f410ae4-d115-468c-9815-3c95085bc2b6" "867849383" 2015-07-01 01:05:48 2015-07-01 01:35:48 "-1" 100 1800 4598 646

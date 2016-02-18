@@ -6,7 +6,7 @@ prepareUnitResults <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL){
 	experiment <- filterEvaluation(experiment)
 	experiment
 }
-preparePageActivityLogs <- function(JOB_ID){
+preparePageActivityLogs <- function(JOB_ID, break_time = dumb_start_time <- as.POSIXct("07/01/2020 00:00:00", format='%m/%d/%Y %H:%M:%S')){
 	p_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_page.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
 	p_data$dt_start <- as.POSIXct(as.numeric(p_data$dt_start)/1000, origin="1970-01-01",tz="GMT")
 	p_data$dt_end <- as.POSIXct(as.numeric(p_data$dt_end)/1000, origin="1970-01-01",tz="GMT")
@@ -15,7 +15,7 @@ preparePageActivityLogs <- function(JOB_ID){
 	p_data$unit_id <- as.factor(p_data$unit_id)
 	p_data$session_id <- as.factor(p_data$session_id)
 
-	page_activity <- sqldf("\r
+	page_activity <- sqldf(paste("\r
 		select \r 
 		p.task_id,p.unit_id,p.assignment_id, p.session_id, sum(p.keyboard) as keyboard, sum(p.mouse) as mouse, sum(p.scroll) as scroll, sum(p.text_selected) as text_selected, count(p.keyboard) as amount, \r
 		sum(case when p.dt_start > session_l+0.0*ps.block_size and p.dt_start < session_l+1.0*ps.block_size then p.keyboard else 0 end) as keyboard_1, \r
@@ -54,15 +54,17 @@ preparePageActivityLogs <- function(JOB_ID){
 		left join (select \r
 			unit_id, assignment_id, session_id, min(dt_start) as session_l, max(dt_end) as session_r, (max(dt_end) - min(dt_start))/10 as block_size\r
 		from p_data \r
+		where dt_start < '",break_time,"' \r
 		group by unit_id, assignment_id, session_id) ps on p.unit_id = ps.unit_id and p.assignment_id = ps.assignment_id and p.session_id = ps.session_id   \r 
-		group by p.task_id, p.unit_id, p.assignment_id, p.session_id,ps.session_r")
+		where p.dt_start < '",break_time,"' \r
+		group by p.task_id, p.unit_id, p.assignment_id, p.session_id,ps.session_r",sep=""))
 
 	page_activity <- page_activity[page_activity$unit_id != "No data available",]
 	page_activity <- page_activity[page_activity$unit_id != "Na",]
 	page_activity
 }
 
-prepareTabActivityLogs <- function(JOB_ID){
+prepareTabActivityLogs <- function(JOB_ID, break_time = dumb_start_time <- as.POSIXct("07/01/2020 00:00:00", format='%m/%d/%Y %H:%M:%S')){
 	t_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_tabs.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
 	t_data$dt_start <- as.POSIXct(as.numeric(t_data$dt_start)/1000, origin="1970-01-01",tz="GMT")
 	t_data$dt_end <- as.POSIXct(as.numeric(t_data$dt_end)/1000, origin="1970-01-01",tz="GMT")
@@ -74,17 +76,18 @@ prepareTabActivityLogs <- function(JOB_ID){
 
 	#t_data[t_data$status_duration<0,c("unit_id","assignment_id","session_id","status","status_duration")]
 
-	tabs_activity <- sqldf("\r
+	tabs_activity <- sqldf(paste("\r
 		select \r
 		task_id,unit_id,assignment_id, session_id, status, min(dt_start) as session_start, max(dt_start) as session_end, sum(status_duration) as status_duration \r
 		from t_data \r
 		where status != ' closed' \r
+		and dt_start < '",break_time,"' \r
 		group by task_id, unit_id, assignment_id, session_id,status \r
-		")
+		",sep=""))
 	tabs_activity
 	#print(tabs_activity)
 }
-prepareKeysActivityLogs <- function(JOB_ID){
+prepareKeysActivityLogs <- function(JOB_ID, break_time = dumb_start_time <- as.POSIXct("07/01/2020 00:00:00", format='%m/%d/%Y %H:%M:%S')){
 	k_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_keys.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
 	k_data$dt_start <- as.POSIXct(as.numeric(k_data$dt_start)/1000, origin="1970-01-01",tz="GMT")
 	k_data$task_id <- as.factor(k_data$task_id)
@@ -93,7 +96,7 @@ prepareKeysActivityLogs <- function(JOB_ID){
 	k_data$key <- as.factor(k_data$key)
 
 	#t_data[t_data$status_duration<0,c("unit_id","assignment_id","session_id","status","status_duration")]
-	key_activity <- sqldf("\r
+	key_activity <- sqldf(paste("\r
 		select \r
 			sum(case when key in (8,46) then 1 else 0 end) as key_delete, \r
 			sum(case when key in (9) then 1 else 0 end) as key_tab, \r
@@ -142,11 +145,12 @@ prepareKeysActivityLogs <- function(JOB_ID){
 			count(key) as key_all, \r
 			task_id,unit_id,assignment_id, session_id \r
 		from k_data \r
+		where dt_start < '",break_time,"' \r
 		group by task_id, unit_id, assignment_id, session_id \r
-		")
+		",sep=""))
 	key_activity
 }
-prepareSessions <- function(JOB_ID){
+prepareSessions <- function(JOB_ID, break_time = dumb_start_time <- as.POSIXct("07/01/2020 00:00:00", format='%m/%d/%Y %H:%M:%S')){
 	# ---------------------------------------
 	# BASED ON TABS ACTIVITY
 	t_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_tabs.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
@@ -158,18 +162,18 @@ prepareSessions <- function(JOB_ID){
 	t_data$session_id <- as.factor(t_data$session_id)
 	t_data[t_data$status==" opened","status"] <- as.factor(" active")
 	# ---------------------------------------
-	assignments <- sqldf("\r
+	assignments <- sqldf(paste("\r
 		select d.*, case when d.dt_end = a.dt then 0 else 1 end as abandoned from \r
 		(select task_id, unit_id, assignment_id, session_id, min(dt_start) as dt_start, max(dt_start) as dt_end, max(dt_start) - min(dt_start) as duration \r
-			from t_data group by task_id, unit_id, assignment_id, session_id ) d \r
+			from t_data where dt_start < '",break_time,"' group by task_id, unit_id, assignment_id, session_id ) d \r
 		inner join (select \r 
 		task_id,unit_id, max(dt_start) as dt \r
-		from t_data \r
-		group by task_id, unit_id) a on d.unit_id = a.unit_id")
+		from t_data where dt_start < '",break_time,"' \r
+		group by task_id, unit_id) a on d.unit_id = a.unit_id",sep=""))
 
 	assignments
 }
-prepareClicksActivityLogs <- function(JOB_ID){
+prepareClicksActivityLogs <- function(JOB_ID, break_time = dumb_start_time <- as.POSIXct("07/01/2020 00:00:00", format='%m/%d/%Y %H:%M:%S')){
 	t_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_clicks.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
 	t_data$dt_start <- as.POSIXct(as.numeric(t_data$dt_start)/1000, origin="1970-01-01",tz="GMT")
 	#t_data$dt_end <- as.POSIXct(as.numeric(t_data$dt_end)/1000, origin="1970-01-01",tz="GMT")
@@ -181,16 +185,17 @@ prepareClicksActivityLogs <- function(JOB_ID){
 
 	#t_data[t_data$status_duration<0,c("unit_id","assignment_id","session_id","status","status_duration")]
 
-	tabs_activity <- sqldf("\r
+	tabs_activity <- sqldf(paste("\r
 		select \r
 		task_id,unit_id,assignment_id, IFNULL(sum(case when element like '%give-up%' then 1 else 0 end),0) as gave_up \r
 		from t_data \r
+		where dt_start < '",break_time,"'
 		group by task_id, unit_id, assignment_id \r
-		")
+		",sep=""))
 	tabs_activity
 	#print(tabs_activity)
 }
-prepareAssignments <- function(JOB_ID){
+prepareAssignments <- function(JOB_ID, break_time = dumb_start_time <- as.POSIXct("07/01/2020 00:00:00", format='%m/%d/%Y %H:%M:%S')){
 	# ---------------------------------------
 	# BASED ON TABS ACTIVITY
 	t_data <- read.table(paste("Logs/",JOB_ID,"/",JOB_ID,"_page.csv",sep=""), header=T, sep="," ,quote = "\"", comment.char = "")
@@ -202,25 +207,26 @@ prepareAssignments <- function(JOB_ID){
 	t_data$session_id <- as.factor(t_data$session_id)
 	#t_data[t_data$status==" opened","status"] <- as.factor(" active")
 	# ---------------------------------------
-	assignments <- sqldf("\r
+	query <- paste("\r
 		select d.*, case when d.dt_end = a.dt then 0 else 1 end as abandoned from \r
 		(select task_id, unit_id, assignment_id, min(dt_start) as dt_start, max(dt_start) as dt_end, max(dt_start) - min(dt_start) as duration \r
-			from t_data group by task_id, unit_id, assignment_id ) d \r
+			from t_data where dt_start < '",break_time,"' group by task_id, unit_id, assignment_id ) d \r
 		inner join (select \r 
 		task_id,unit_id, max(dt_start) as dt \r
-		from t_data \r
-		group by task_id, unit_id) a on d.unit_id = a.unit_id")
+		from t_data where dt_start < '",break_time,"' \r
+		group by task_id, unit_id) a on d.unit_id = a.unit_id",sep="")
+	assignments <- sqldf(query)
 
 	assignments
 }
 
 
-prepareFeaturesDataset <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL){
+prepareFeaturesDataset <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL, break_time = dumb_start_time <- as.POSIXct("07/01/2020 00:00:00", format='%m/%d/%Y %H:%M:%S')){
 	units <- prepareUnitResults(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL)
-	page_activity <- preparePageActivityLogs(JOB_ID)
-	tabs_activity <- prepareTabActivityLogs(JOB_ID)
-	key_activity <- prepareKeysActivityLogs(JOB_ID)
-	sessions <- prepareSessions(JOB_ID)
+	page_activity <- preparePageActivityLogs(JOB_ID, break_time)
+	tabs_activity <- prepareTabActivityLogs(JOB_ID, break_time)
+	key_activity <- prepareKeysActivityLogs(JOB_ID, break_time)
+	sessions <- prepareSessions(JOB_ID, break_time)
 	
 	#		a.abandoned,\r 
 	#		and a.abandoned = 0 \r
