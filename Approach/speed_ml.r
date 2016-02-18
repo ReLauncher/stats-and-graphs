@@ -42,7 +42,7 @@ TIME_START <- min(assignments$dt_start) + PERIOD_START
 start_features_dataset <- prepareFeaturesDataset(TASK_ID, task_type, GOOGLE_SPREADSHEET, TIME_START) #
 abandonence_training_set <- prepareAbandonenceTrainingSet(start_features_dataset)
 abandonence_training_set <- filter(abandonence_training_set, session_end <= TIME_START)
-abandonence_training_set <- select(abandonence_training_set, -(re_execution_relative_end))
+abandonence_training_set <- select(abandonence_training_set, -(re_execution_relative_end),-(assignment_id))
 abandonence_model <- buildModel(abandonence_training_set,F,"rpart")
 
 #drawDecisionTree(abandonence_model,paste("Abandonence_",TASK_ID,sep="", title = "Decition tree for runtime"))
@@ -53,19 +53,30 @@ time_duration <- ceiling(as.numeric(difftime(time_end, time_start, units = "secs
 
 empty_template <- assignments_all
 empty_template$relaunched <- NA
-empty_template$with_limit <- NA
 assignments_been_relaunched <- empty_template[FALSE,]	
+all_dataset <- prepareFeaturesDataset(TASK_ID, task_type, GOOGLE_SPREADSHEET) #
+	
 
-for (CURRENT_PERIOD in seq(PERIOD_START,time_duration,by = 600)){
+for (CURRENT_PERIOD in seq(0,time_duration,by = 60)){
 	CURRENT_TIME <- min(assignments$dt_start) + CURRENT_PERIOD
+
 	start_features_dataset <- prepareFeaturesDataset(TASK_ID, task_type, GOOGLE_SPREADSHEET, CURRENT_TIME) #
-	
+	if (nrow(assignments_been_relaunched)>0){
+		start_features_dataset <- subset(start_features_dataset, !(assignment_id %in% assignments_been_relaunched$assignment_id))
+	}
 	abandonence_training_set <- prepareAbandonenceTrainingSet(start_features_dataset)
-	abandonence_training_set <- filter(abandonence_training_set, session_end <= TIME_START)
-	abandonence_training_set <- select(abandonence_training_set, -(re_execution_relative_end))
-	
-	predictions <- predict(abandonence_model, abandonence_training_set)
-	print(confusionMatrix(predictions, abandonence_training_set$abandoned))
+	abandonence_training_set <- filter(abandonence_training_set, session_start <= CURRENT_TIME)
+
+	abandonence_training_fin <- select(abandonence_training_set, -(re_execution_relative_end),-(assignment_id))
+	#abandonence_training_fin <- select(abandonence_training_fin, )
+	predictions <- predict(abandonence_model, abandonence_training_fin)
+	if (sum(as.numeric(predictions)-1) >0){
+		to_relaunch <- abandonence_training_set[as.logical(as.numeric(predictions)-1),]
+		to_relaunch$relaunched <- CURRENT_PERIOD
+		assignments_been_relaunched <- rbind(assignments_been_relaunched,to_relaunch)
+	}
+	print(length(predictions))
+	#print(confusionMatrix(predictions, abandonence_training_set$abandoned))
 }
 
 

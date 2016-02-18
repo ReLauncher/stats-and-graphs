@@ -349,6 +349,7 @@ prepareFeaturesDataset <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL, br
 			ta.session_start,
 			ta.session_end,
 			e.re_execution_relative_end, \r
+			a.assignment_id, \r
 			case when e.re_evaluation not null then e.re_evaluation else -10 end as re_evaluation \r
 		from sessions a\r
 			left join units e on abandoned = 0 and a.unit_id = e.re_unit_id
