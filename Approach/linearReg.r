@@ -47,11 +47,11 @@ summaryAlgorithm <- function(assignments_all,assignments_been_relaunched){
 			sum(case when relaunched = 0 and re_evaluation = -1 then 1 else 0 end)  as fn\r
 		from validation 
 		")
-	validation_summary <- sqldf("\r
-		select \r
-			v.*, 1.0*tp/(tp+fp) as precision, 1.0*tp/(tp+fn) as recall\r
-		from validation_summary v
-		")
+	#validation_summary <- sqldf("\r
+	#	select \r
+	#		v.*, 1.0*tp/(tp+fp) as precision, 1.0*tp/(tp+fn) as recall\r
+	#	from validation_summary v
+	#	")
 	validation_summary
 }
 predictAbandonedLinear <- function(assignments_all, variable_start, variable_interval,task_id){
@@ -129,4 +129,15 @@ saveTimelinePlot <- function(timeline_data, task_id, width, height){
 		tl_title_x = "Time since the task launch",
 		tl_title_y = "Unit ID")
 	ggsave(tl, file=paste("Approach/timeline_",task_id,".pdf",sep=""), width=width, height=height)
+}
+
+augmentPrecisionRecall <- function(simulation){
+	simulation <- sqldf("select tp,tn,fp,fn, \r
+				round(1.0*tp/(tp+fp),2) as precision, round(1.0*tp/(tp+fn),2) as recall, k_value\r
+			from simulation v")
+	simulation
+}
+saveSimulationResults <- function(simulation,filename){
+	simulation<-augmentPrecisionRecall(simulation)
+	write.table(simulation, paste("Approach/Simulations/",filename,".csv",sep = ""),sep="\t",row.names = F)
 }

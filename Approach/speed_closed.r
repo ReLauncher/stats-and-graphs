@@ -12,11 +12,11 @@ task_type <- "Images"
 #TASK_ID <- 854546
 #GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=1916343054"
 
-#TASK_ID <- 854432
-#GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=62480003"
+TASK_ID <- 854432
+GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=62480003"
 
-TASK_ID <- 854753
-GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901"
+#TASK_ID <- 854753
+#GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901"
 # =======================================
 results <- prepareUnitResults(TASK_ID,task_type,GOOGLE_SPREADSHEET)
 
@@ -73,13 +73,5 @@ validation_summary <- sqldf("\r
 			sum(case when relaunched = 0 and re_evaluation = -1 then 1 else 0 end)  as fn\r
 		from logs_for_timeline 
 		")
-	validation_summary <- sqldf("\r
-		select \r
-			v.*, 1.0*tp/(tp+fp) as precision, 1.0*tp/(tp+fn) as recall\r
-		from validation_summary v
-		")
-	validation_summary
-write.table(validation_summary, paste("Approach/closed_tabs_",TASK_ID,".csv",sep = ""),sep=", ")
-#logs_for_timeline$re_evaluation <- as.factor(logs_for_timeline$re_evaluation)
-#logs_for_timeline$re_unit_id <- as.factor(logs_for_timeline$re_unit_id)
-#logs_for_timeline[logs_for_timeline$re_evaluation == -1,"re_execution_relative_end"] <- logs_for_timeline[logs_for_timeline$re_evaluation == -1,"re_execution_relative_start"]+1800
+validation_summary$k_value <- 0
+saveSimulationResults(validation_summary, paste("speed_closed_",TASK_ID,sep=""))

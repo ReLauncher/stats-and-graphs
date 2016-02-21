@@ -9,13 +9,13 @@ source("Approach/linearReg.r")
 
 task_type <- "Images"
 # =======================================
-TASK_ID_TEST <- 854432
-GOOGLE_SPREADSHEET_TEST <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=62480003"
+TASK_ID_TRAIN <- 854432
+GOOGLE_SPREADSHEET_TRAIN <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=62480003"
 
 #TASK_ID_TRAIN <- 854546
 #GOOGLE_SPREADSHEET_TRAIN <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=1916343054"
-TASK_ID_TRAIN <- 854753
-GOOGLE_SPREADSHEET_TRAIN <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901"
+TASK_ID_TEST <- 854753
+GOOGLE_SPREADSHEET_TEST <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901"
 
 # =======================================
 
@@ -59,9 +59,5 @@ if (1 ==1 ){
 	}
 }
 colnames(pred) <- c("tn","fn","fp","tp","k_value")
-pred <- sqldf("select tp,tn,fp,fn, \r
-			1.0*tp/(tp+fp) as precision, 1.0*tp/(tp+fn) as recall, k_value\r
-		from pred v")
-print(pred)
-write.table(pred, paste("Approach/accuracy_ml_",TASK_ID_TEST,"_based_on_",TASK_ID_TRAIN,".csv",sep = ""),sep=", ")
+saveSimulationResults(pred, paste("accuracy_ml_",TASK_ID_TEST,"_based_on_",TASK_ID_TRAIN,sep=""))
 
