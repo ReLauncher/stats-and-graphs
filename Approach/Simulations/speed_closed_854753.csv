@@ -1,2 +1,2 @@
-"tp"	"tn"	"fp"	"fn"	"precision"	"recall"	"k_value"
-13	94	9	0	0.59	1	0
+"tp","tn","fp","fn","precision","recall","k_value"
+13,94,9,0,0.59,1,0

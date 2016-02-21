@@ -1,4 +1,5 @@
 require(dplyr)
+source("Approach/tasks_for_simulation.R")
 
 predictMax<- function(durations, last_index){
 	x <- durations
@@ -139,5 +140,5 @@ augmentPrecisionRecall <- function(simulation){
 }
 saveSimulationResults <- function(simulation,filename){
 	simulation<-augmentPrecisionRecall(simulation)
-	write.table(simulation, paste("Approach/Simulations/",filename,".csv",sep = ""),sep="\t",row.names = F)
+	write.table(simulation, paste("Approach/Simulations/",filename,".csv",sep = ""),sep=",",row.names = F)
 }
