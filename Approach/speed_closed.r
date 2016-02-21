@@ -7,9 +7,7 @@ source("Libs/graphs.R")
 source("Libs/logs_into_features.R")
 source("Approach/linearReg.r")
 
-for(i in seq(1:nrow(SIMULATION_TASKS))){
-	simulate_speed_closed_tabs(SIMULATION_TASKS[i,"id"],SIMULATION_TASKS[i,"spreadsheet"])
-}
+
 
 simulate_speed_closed_tabs <- function(TASK_ID,GOOGLE_SPREADSHEET){
 	task_type <- "Images"
@@ -70,4 +68,8 @@ simulate_speed_closed_tabs <- function(TASK_ID,GOOGLE_SPREADSHEET){
 			")
 	validation_summary$k_value <- 0
 	saveSimulationResults(validation_summary, paste("speed_closed_",TASK_ID,sep=""))
+}
+
+for(i in seq(1:nrow(SIMULATION_TASKS))){
+	simulate_speed_closed_tabs(SIMULATION_TASKS[i,"id"],SIMULATION_TASKS[i,"spreadsheet"])
 }

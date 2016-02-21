@@ -97,7 +97,7 @@ predictAbandonedLinear <- function(assignments_all, variable_start, variable_int
 			#print(maxdur)
 		}
 	}
-	write.table(assignments_been_relaunched, file = paste("Approach/",task_id,"_speed_",variable_start,"_linear.csv",sep=""))
+	write.table(assignments_been_relaunched, file = paste("Approach/Simulations/Details/",task_id,"_speed_",variable_start,"_linear.csv",sep=""),sep=",",row.names = F)
 	assignments_been_relaunched
 }
 predictAbandonedTree <- function(assignments_all, variable_start, variable_interval, task_id){
@@ -141,4 +141,8 @@ augmentPrecisionRecall <- function(simulation){
 saveSimulationResults <- function(simulation,filename){
 	simulation<-augmentPrecisionRecall(simulation)
 	write.table(simulation, paste("Approach/Simulations/",filename,".csv",sep = ""),sep=",",row.names = F)
+}
+getPercentile <- function(distribution, perc){
+	q <-quantile(distribution, c(perc))
+	as.numeric(q[paste(floor(perc*100),"%",sep="")])
 }

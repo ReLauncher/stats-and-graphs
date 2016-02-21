@@ -367,9 +367,10 @@ prepareFeaturesDataset <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL, br
 
 prepareEvaluationTrainingSet <- function(job_dataset){
 	eva_set <- job_dataset
-	eva_set <- eva_set[eva_set$re_evaluation!=-10,]
+	eva_set <- filter(eva_set, re_evaluation!=-10)
+	eva_set <- select(eva_set, -(abandoned))
 	eva_set$re_evaluation <- as.factor(eva_set$re_evaluation) 
-	eva_set <- eva_set[,names(eva_set)!="abandoned"]
+	
 	eva_set
 }
 
