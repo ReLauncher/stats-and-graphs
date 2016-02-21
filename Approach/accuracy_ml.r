@@ -9,19 +9,19 @@ source("Approach/linearReg.r")
 
 task_type <- "Images"
 # =======================================
-#TASK_ID_TRAIN <- 854432
-#GOOGLE_SPREADSHEET_TRAIN <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=62480003"
+TASK_ID_TEST <- 854432
+GOOGLE_SPREADSHEET_TEST <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=62480003"
 
-TASK_ID_TRAIN <- 854546
-GOOGLE_SPREADSHEET_TRAIN <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=1916343054"
-TASK_ID_TEST <- 854753
-GOOGLE_SPREADSHEET_TEST <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901"
+#TASK_ID_TRAIN <- 854546
+#GOOGLE_SPREADSHEET_TRAIN <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=1916343054"
+TASK_ID_TRAIN <- 854753
+GOOGLE_SPREADSHEET_TRAIN <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901"
 
 # =======================================
 
 
 test_dataset <- prepareFeaturesAssignmentsDataset(TASK_ID_TEST, task_type, GOOGLE_SPREADSHEET_TEST) #
-test_all <- prepareAbandonenceTrainingSet(test_dataset)
+test_all <- prepareEvaluationTrainingSet(test_dataset)
 test_filt <- select(test_all, -(assignment_id),-(re_execution_relative_end),-(assignment_start),-(assignment_end))
 			
 training_dataset <- prepareFeaturesAssignmentsDataset(TASK_ID_TRAIN, task_type, GOOGLE_SPREADSHEET_TRAIN) #
@@ -33,19 +33,19 @@ if (1 ==1 ){
 	for(i in seq(from=0.00, to=1.0, by=0.1)){
 		border_index <- floor(size * i)
 		training_subset <- training_dataset[seq(1,border_index),]
-		aband_num <- nrow(training_subset[training_subset$abandoned == 1,])
-		not_ab_num <- nrow(training_subset[training_subset$abandoned != 1,])
+		quality_high <- nrow(training_subset[training_subset$re_evaluation == 1,])
+		quality_low <- nrow(training_subset[training_subset$re_evaluation == 0,])
 		print(i)
-		if (aband_num >1 &&  not_ab_num >1 ) {
-			training_clean <- prepareAbandonenceTrainingSet(training_subset)
+		if (quality_high >1 &&  quality_low >1 ) {
+			training_clean <- prepareEvaluationTrainingSet(training_subset)
 			training_clean <- select(training_clean, -(assignment_id),-(re_execution_relative_end),-(assignment_start),-(assignment_end))
-			print(paste(aband_num,not_ab_num,sep=" "))
+			print(paste(quality_high,quality_low,sep=" "))
 			# print(nrow(training_clean))
-			abandonence_model <- buildModel(training_clean,F,"rpart")
+			quality_model <- buildModel(training_clean,T,"rpart")
 			#print(abandonence_model$finalModel)
-			predictions <- predict(abandonence_model, test_filt)
+			predictions <- predict(quality_model, test_filt)
 
-			cf <- confusionMatrix(predictions, test_all$abandoned)
+			cf <- confusionMatrix(predictions, test_all$re_evaluation)
 			print(cf$table)
 			measurement <- c(cf$table[1,1],cf$table[1,2],cf$table[2,1],cf$table[2,2],i)
 			pred <- rbind(pred,measurement)
@@ -63,5 +63,5 @@ pred <- sqldf("select tp,tn,fp,fn, \r
 			1.0*tp/(tp+fp) as precision, 1.0*tp/(tp+fn) as recall, k_value\r
 		from pred v")
 print(pred)
-write.table(pred, paste("Approach/speed_ml_",TASK_ID_TEST,"_based_on_",TASK_ID_TRAIN,".csv",sep = ""),sep=", ")
+write.table(pred, paste("Approach/accuracy_ml_",TASK_ID_TEST,"_based_on_",TASK_ID_TRAIN,".csv",sep = ""),sep=", ")
 

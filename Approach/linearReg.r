@@ -66,16 +66,22 @@ predictAbandonedLinear <- function(assignments_all, variable_start, variable_int
 	empty_template$with_limit <- NA
 	assignments_been_relaunched <- empty_template[FALSE,]
 
-
-	for (i in seq(variable_start*time_duration, time_duration, by=variable_interval)){
+	begin_assignment_index <- floor(variable_start*nrow(assignments_completed))
+	if (begin_assignment_index == 0){
+		begin_assignment_index <- 1
+	} 
+	begin_point <- ceiling(as.numeric(difftime(assignments_completed[begin_assignment_index,"re_execution_relative_start"],time_start, units = "secs")))
+	print(begin_point)
+	for (i in seq(begin_point, time_duration, by=variable_interval)){
 		current_time <- time_start+i
 		# -----------------------------
 		# calculate MAX DURATION
 		assignments_train <- filter(assignments_completed,re_execution_relative_end<= current_time)
 		durations_train <-assignments_train$re_duration_num
-		print(length(durations_train))
+		#print(length(durations_train))
 
 		if (length(durations_train)>0){
+			#maxdur <- 1681
 			maxdur <- predictMax(durations_train,nrow(assignments_completed))
 			# ----------------------------
 			not_relaunched <- anti_join(assignments_all,select(assignments_been_relaunched, -(relaunched:with_limit)))
@@ -102,7 +108,10 @@ predictAbandonedTree <- function(assignments_all, variable_start, variable_inter
 	empty_template <- assignments_all
 	empty_template$relaunched <- NA
 	empty_template$with_limit <- NA
-	assignments_been_relaunched <- empty_template[FALSE,]
+	assignments_been_relaunched <- empty_template[FALSE,]	
+}
+createAbandonedTree <- function(assignments_all, variable_start, variable_interval, task_id){
+
 }
 saveTimelinePlot <- function(timeline_data, task_id, width, height){
 	tl <- plotTimeline(timeline_data, width = width, height = height, faceting = F, 

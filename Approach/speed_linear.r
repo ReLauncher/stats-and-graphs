@@ -1,7 +1,6 @@
 library(sqldf)
 library(caret)
 
-
 source("Libs/graphs.R")
 source("Libs/logs_into_features.R")
 source("Approach/linearReg.r")
@@ -11,11 +10,11 @@ task_type <- "Images"
 #TASK_ID <- 854546
 #GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=1916343054"
 
-#TASK_ID <- 854432
-#GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=62480003"
+TASK_ID <- 854432
+GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=62480003"
 
-TASK_ID <- 854753
-GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901"
+#TASK_ID <- 854753
+#GOOGLE_SPREADSHEET <- "https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901"
 # =======================================
 results <- prepareUnitResults(TASK_ID,task_type,GOOGLE_SPREADSHEET)
 
@@ -50,7 +49,8 @@ for (k in seq(0.0,1.0, by = 0.1)){
 	relaunching_summary$k_value = k
 	ss <- rbind(ss,relaunching_summary)
 }
-#saveTimelinePlot <- function(logs_for_timeline, TASK_ID, 10, 6)
+write.table(ss, paste("Approach/k_var_",TASK_ID,".csv",sep = ""),sep=", ")
+#saveTimelinePlot(logs_for_timeline, TASK_ID, 6, 4)
 
 
 #transcription2 <- prepareFeaturesDataset(854753,task_type,"https://docs.google.com/spreadsheets/d/14mzXgEBziGJbzx6HFcb1PkBgCzVQRZOCKb5S4wJRwmc/edit#gid=94510901")

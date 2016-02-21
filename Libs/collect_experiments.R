@@ -54,6 +54,7 @@ reformatExperimentData <- function(data, job_id = "0", title = "task", condition
 	data$re_duration <- difftime(data$execution_end, data$execution_start, units = "secs") 
 	data$re_duration_num <- as.numeric(data$re_duration)
 	data$first_execution_start <- min(data$execution_start)
+	data$re_first_execution_start <- data$first_execution_start 
 
 	data$re_execution_relative_end <- dumb_start_time + (data$execution_end - data$first_execution_start)
 	data$re_execution_relative_start <- data$re_execution_relative_end - data$re_duration

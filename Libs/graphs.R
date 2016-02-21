@@ -20,10 +20,10 @@ source("secret.R")
 #myColors <- brewer.pal(5,"Set1")
 #names(myColors) <- levels(c("0","1","2","3","-1"))
 #colScale <- scale_colour_manual(name = "re_evaluation",values = myColors)
-evaluation_color <- scale_colour_manual(
-  values = c("-2" = "azure4", "-1" = "orange", "0" = "red","1" = "black","2" = "grey"))
+evaluation_color <- scale_colour_manual(guide=FALSE,
+  values = c("-2" = "azure4", "-1" = "orange", "0" = "#FF5555","1" = "black","2" = "grey"))
 evaluation_fill <- scale_fill_manual(
-  values = c("-2" = "azure4", "-1" = "orange", "0" = "red","1" = "black","2" = "grey"))
+  values = c("-2" = "azure4", "-1" = "orange", "0" = "#FF5555","1" = "black","2" = "grey"))
 
 theme_settings <- theme(
 	text = element_text(size=8, color = "black"), 

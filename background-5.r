@@ -27,18 +27,18 @@ for (i in 0:2){
 	}
 }
 
-tl <- plotTimeline(all_data, faceting = T,tl_bar_detail_show = F)
-ggsave(tl, file="Graphs/background_Timeline.pdf", width=12, height=6)
-print(tl)
+#tl <- plotTimeline(all_data, faceting = T,tl_bar_detail_show = F)
+#ggsave(tl, file="Graphs/background_Timeline.pdf", width=12, height=6)
+#print(tl)
 
 pt <- plotDotsDurationVSIndexAccuracy(all_data, faceting = T)
-ggsave(pt, file="Graphs/background_Duration_Accuracy.pdf", width=12, height=6)
+ggsave(pt, file="Graphs/background_Duration_Accuracy.pdf", width=7, height=6)
 print(pt)
 
-hg <- plotHistogram(all_data, faceting = T)
-ggsave(hg, file="Graphs/background_Histogram.pdf", width=12, height=6)
-print(hg)
+#hg <- plotHistogram(all_data, faceting = T)
+#ggsave(hg, file="Graphs/background_Histogram.pdf", width=12, height=6)
+#print(hg)
 
 cm <- plotCumulative(all_data, faceting = T)
-ggsave(cm, file="Graphs/background_Cumulative.pdf", width=12, height=6)
+ggsave(cm, file="Graphs/background_Cumulative.pdf", width=7, height=6)
 print(cm)

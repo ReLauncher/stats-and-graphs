@@ -80,8 +80,8 @@ prepareTabActivityLogs <- function(JOB_ID, break_time = dumb_start_time <- as.PO
 		select \r
 		task_id,unit_id,assignment_id, session_id, status, min(dt_start) as session_start, max(dt_start) as session_end, sum(status_duration) as status_duration \r
 		from t_data \r
-		where status != ' closed' \r
-		and dt_start < '",break_time,"' \r
+		where -- status != ' closed' and\r
+		dt_start < '",break_time,"' \r
 		group by task_id, unit_id, assignment_id, session_id,status \r
 		",sep=""))
 	tabs_activity
@@ -278,7 +278,7 @@ prepareFeaturesDataset <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL, br
 			-- IFNULL(p.keyboard*1.0/p.amount,0) as page_kb,IFNULL(p.mouse*1.0/p.amount,0) as page_ms,IFNULL(p.scroll*1.0/p.amount,0) as page_sc, \r
 			IFNULL(p.amount,0) as periodic_logs_collected, \r
 			-- IFNULL(ta.status_duration*1.0/(ta.status_duration+th.status_duration),0) as page_ac, IFNULL(th.status_duration*1.0/(ta.status_duration+th.status_duration),0) as tab_hd, \r
-			a.abandoned, \r
+			case when a.abandoned = 1 and e.re_evaluation not null then 2 else a.abandoned end as abandoned, \r
 			a.duration, \r 
 			/*1.0*p.keyboard_1/p.amount as kb_1,\r
 			1.0*p.keyboard_2/p.amount as kb_2,\r
@@ -422,4 +422,83 @@ predictTaskAccuracy <- function(task_training, task_test){
 	}
 	colnames(pred) <- c("alpha","train_size","test_size","tn","fn","fp","tp","accuracy","specificity","sensitivity")
 	pred
+}
+
+prepareFeaturesAssignmentsDataset <- function(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL, break_time = dumb_start_time <- as.POSIXct("07/01/2020 00:00:00", format='%m/%d/%Y %H:%M:%S')){
+	units <- prepareUnitResults(JOB_ID, TASK_TYPE, GOOGLE_SPREADSHEET_URL)
+	page_activity <- preparePageActivityLogs(JOB_ID, break_time)
+	tabs_activity <- prepareTabActivityLogs(JOB_ID, break_time)
+	key_activity <- prepareKeysActivityLogs(JOB_ID, break_time)
+	assignments <- prepareAssignments(JOB_ID, break_time)
+	
+	#		a.abandoned,\r 
+	#		and a.abandoned = 0 \r
+	featuresDataset <- sqldf("\r
+		select \r
+			sum(IFNULL(kall.key_delete,0)) as key_delete, \r
+			-- IFNULL(kall.key_tab,0)) as key_tab, \r
+			sum(IFNULL(kall.key_enter,0)) as key_enter, \r
+			sum(IFNULL(kall.key_shift,0)) as key_shift, \r
+			sum(IFNULL(kall.key_cntrl,0)) as key_cntrl, \r
+			sum(IFNULL(kall.key_alt,0)) as key_alt, \r
+			sum(IFNULL(kall.key_pause,0)) as key_pause, \r
+			sum(IFNULL(kall.key_caps,0)) as key_caps, \r
+			sum(IFNULL(kall.key_esc,0)) as key_esc, \r
+			sum(IFNULL(kall.key_page_up,0)) as key_page_up, \r
+			sum(IFNULL(kall.key_page_down,0)) as key_page_down, \r
+			sum(IFNULL(kall.key_end,0)) as key_end, \r
+			sum(IFNULL(kall.key_home,0)) as key_home, \r
+			sum(IFNULL(kall.key_left,0)) as key_left, \r
+			sum(IFNULL(kall.key_up,0)) as key_up, \r
+			sum(IFNULL(kall.key_right,0)) as key_right, \r
+			sum(IFNULL(kall.key_down,0)) as key_down, \r
+			sum(IFNULL(kall.key_insert,0)) as key_insert, \r
+			sum(IFNULL(kall.key_digit,0)) as key_digit, \r
+			sum(IFNULL(kall.key_char,0)) as key_char, \r
+			sum(IFNULL(1.0*kall.key_unique_char/kall.key_all,0)) as key_unique_part, \r
+			sum(IFNULL(kall.key_math,0)) as key_math, \r
+			sum(IFNULL(kall.key_dots,0)) as key_dots, \r
+			sum(IFNULL(kall.key_punctuation,0)) as key_punctuation, \r
+			sum(IFNULL(kall.key_slash,0)) as key_slash, \r
+			sum(IFNULL(kall.key_math_multiply,0)) as key_math_multiply, \r
+			sum(IFNULL(kall.key_math_add,0)) as key_math_add,  \r
+			sum(IFNULL(kall.key_math_subtract,0)) as key_math_subtract, \r
+			sum(IFNULL(kall.key_math_decimal,0)) as key_math_decimal, \r
+			sum(IFNULL(kall.key_math_divide,0)) as key_math_divide, \r
+			sum(IFNULL(kall.key_semicolon,0)) as key_semicolon, \r
+			sum(IFNULL(kall.key_equal,0)) as key_equal, \r
+			sum(IFNULL(kall.key_comma,0)) as key_comma, \r
+			sum(IFNULL(kall.key_dash,0)) as key_dash, \r
+			sum(IFNULL(kall.key_period,0)) as key_period, \r
+			sum(IFNULL(kall.key_slash_fwd,0)) as key_slash_fwd, \r
+			sum(IFNULL(kall.key_grave_accent,0)) as key_grave_accent, \r
+			sum(IFNULL(kall.key_bracket_open,0)) as key_bracket_open, \r
+			sum(IFNULL(kall.key_slack_bck,0)) as key_slack_bck, \r
+			sum(IFNULL(kall.key_bracket_close,0)) as key_bracket_close, \r
+			sum(IFNULL(kall.key_quote_single,0)) as key_quote_single, \r
+			sum(IFNULL(kall.key_all,0)) as key_all, \r
+			\r
+			-- IFNULL(p.keyboard*1.0/p.amount,0) as page_kb,IFNULL(p.mouse*1.0/p.amount,0) as page_ms,IFNULL(p.scroll*1.0/p.amount,0) as page_sc, \r
+			sum(IFNULL(p.amount,0)) as periodic_logs_collected, \r
+			-- IFNULL(ta.status_duration*1.0/(ta.status_duration+th.status_duration),0) as page_ac, IFNULL(th.status_duration*1.0/(ta.status_duration+th.status_duration),0) as tab_hd, \r
+			max(a.abandoned) as abandoned, \r
+			sum(a.duration) as sessions_duration, \r 
+			min(a.dt_start) as assignment_start, \r
+			max(a.dt_end) as assignment_end, \r 
+			case when e.re_duration_num is null then max(a.dt_end) - min(a.dt_start) else e.re_duration_num end as assignment_duration, \r
+			max(e.re_execution_relative_end) as re_execution_relative_end, \r
+			a.assignment_id as assignment_id, \r
+			case when e.re_evaluation not null then e.re_evaluation else -10 end as re_evaluation \r
+		from assignments a\r
+			left join units e on abandoned = 0 and a.unit_id = e.re_unit_id
+			left join page_activity p on a.unit_id = p.unit_id and a.assignment_id = p.assignment_id 
+			left join tabs_activity ta on a.unit_id = ta.unit_id and a.assignment_id = ta.assignment_id and ta.status like '%active%'
+			left join tabs_activity th on a.unit_id = th.unit_id and a.assignment_id = th.assignment_id and th.status like '%hidden%'
+			left join key_activity kall on a.unit_id = kall.unit_id and a.assignment_id = kall.assignment_id
+		where \r
+		 	ta.unit_id is not null and p.unit_id is not null \r
+		group by e.re_duration_num, a.assignment_id, case when e.re_evaluation not null then e.re_evaluation else -10 end \r
+		order by e.re_execution_relative_end \r
+		")
+	featuresDataset
 }
