@@ -3,9 +3,9 @@ source("Approach/simulations_lib.r")
 # ===================================
 # DURATION OUTLIERS DETECTION
 # ===================================
-for(i in seq(1:nrow(SIMULATION_TASKS))){
-	simulate_accuracy_outliers(SIMULATION_TASKS[i,"id"],SIMULATION_TASKS[i,"spreadsheet"])
-}
+#for(i in seq(1:nrow(SIMULATION_TASKS))){
+#	simulate_accuracy_outliers(SIMULATION_TASKS[i,"id"],SIMULATION_TASKS[i,"spreadsheet"])
+#}
 
 # ===================================
 # PREDICTION BASED ON PAGE ACTIVITY

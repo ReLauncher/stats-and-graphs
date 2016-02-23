@@ -330,7 +330,7 @@ simulate_accuracy_ml <- function(TASK_ID_TEST, GOOGLE_SPREADSHEET_TEST,TASK_ID_T
 	if (length(levels(test_all$re_evaluation))>1){
 		test_filt <- select(test_all, -(assignment_id),-(re_execution_relative_end),-(assignment_start),-(assignment_end))		
 		training_dataset <- prepareFeaturesAssignmentsDataset(TASK_ID_TRAIN, task_type, GOOGLE_SPREADSHEET_TRAIN) #
-		pred <- data.frame(tn = NA, fn = NA, fp = NA, tp = NA, k_value= NA)[numeric(), ]
+		pred <- data.frame(tp = NA, fp = NA, fn = NA, tn = NA, k_value= NA)[numeric(), ]
 
 		size <- nrow(training_dataset)
 		for(i in seq(from=0.00, to=1.0, by=0.1)){
@@ -354,7 +354,7 @@ simulate_accuracy_ml <- function(TASK_ID_TEST, GOOGLE_SPREADSHEET_TEST,TASK_ID_T
 				print("none")	
 			}
 		}
-		colnames(pred) <- c("tn","fn","fp","tp","k_value")
+		colnames(pred) <- c("tp","fp","fn","tn","k_value")
 		saveSimulationResults(pred, paste("accuracy_ml_",TASK_ID_TEST,"_based_on_",TASK_ID_TRAIN,sep=""))
 	}
 }
