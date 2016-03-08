@@ -23,8 +23,8 @@ getPrecisionRecall <- function(string_1, task_id_1,string_2="",task_id_2=""){
 
 
 evaluations<- -21
-if (1 == 1){
-file_type_1 <- "speed_closed_"
+if (1 == 2){
+file_type_1 <- "accuracy_outliers_"
 file_type_2 <- ""
 	for(k in seq(1:length(TASK_ID))){
 		#print(paste(m,k,sep=" "))
@@ -42,8 +42,8 @@ file_type_2 <- ""
 }
 
 
-if (1 == 2){
-file_type_1 <- "accuracy_ml_"
+if (1 == 1){
+file_type_1 <- "speed_ml_"
 file_type_2 <- "_based_on_"
 	for(m in seq(1:length(TASK_ID))){
 		for(k in seq(1:length(TASK_ID))){
@@ -85,4 +85,4 @@ pl <- pl+
 	scale_color_discrete(guide=FALSE)
 
 print(pl)
-ggsave(pl, file="Approach/Simulations/speed_closed.pdf", width=12, height=4)
+ggsave(pl, file="Approach/Plots/speed_ml.pdf", width=12, height=4)
