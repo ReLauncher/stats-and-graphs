@@ -2,9 +2,12 @@ source("Approach/tasks_for_simulation.r")
 require(dplyr)
 library(plyr)
 library(ggplot2)
+library(ggrepel)
 library(latticeExtra)
 
 library(scatterplot3d)
+
+task_list <- getSimulationTaskList()
 
 getPrecisionRecall <- function(string_1, task_id_1,string_2="",task_id_2=""){
 	filename <- paste("Approach/Simulations/",string_1,task_id_1,string_2,task_id_2,".csv",sep="")
@@ -16,22 +19,23 @@ getPrecisionRecall <- function(string_1, task_id_1,string_2="",task_id_2=""){
 			result <- p_data
 		}
 	}
-
 	result
 }
 
 
 
 evaluations<- -21
-if (1 == 2){
-file_type_1 <- "accuracy_outliers_"
-file_type_2 <- ""
-	for(k in seq(1:length(TASK_ID))){
-		#print(paste(m,k,sep=" "))
-		new_evaluation<- getPrecisionRecall(file_type_1,TASK_ID[k])
+if (TRUE){
+	file_type_1 <- "Speed_closed_test_"
+	file_type_2 <- ""
+	for(k in seq(1:9)){
+		print(k)
+		new_evaluation<- getPrecisionRecall(file_type_1,task_list[k,1])
 		print(new_evaluation)
 		if (new_evaluation != -21){
-			new_evaluation$task_id_1 <- TASK_ID[k]
+			new_evaluation$task_id_1 <- task_list[k,1]
+			new_evaluation$task_type <- task_list[k,3]
+			
 			if (evaluations == -21){
 				evaluations<- new_evaluation
 			}else{
@@ -42,18 +46,19 @@ file_type_2 <- ""
 }
 
 
-if (1 == 1){
-file_type_1 <- "speed_ml_"
+if (FALSE){
+file_type_1 <- "accuracy_ml_"
 file_type_2 <- "_based_on_"
-	for(m in seq(1:length(TASK_ID))){
-		for(k in seq(1:length(TASK_ID))){
+	for(m in seq(1:9)){
+		for(k in seq(1:9)){
 			if (m!=k){
 				#print(paste(m,k,sep=" "))
-				new_evaluation<- getPrecisionRecall(file_type_1,TASK_ID[m],file_type_2,TASK_ID[k])
+				new_evaluation<- getPrecisionRecall(file_type_1,task_list[m,1],file_type_2,task_list[k,1])
 				print(new_evaluation)
 				if (new_evaluation != -21){
-					new_evaluation$task_id_1 <- TASK_ID[m]
-					new_evaluation$task_id_2 <- TASK_ID[k]
+					new_evaluation$task_id_1 <- task_list[m,1]
+					new_evaluation$task_id_2 <- task_list[k,1]
+					new_evaluation$task_type <- task_list[m,3]
 					if (evaluations == -21){
 						evaluations<- new_evaluation
 					}else{
@@ -69,20 +74,35 @@ file_type_2 <- "_based_on_"
 
 print(evaluations)
 evaluations<- na.omit(evaluations)
-evaluations$k_value <- as.factor(evaluations$k_value)
-
-evaluations_agr <- ddply(evaluations,~k_value,summarise, precision = median(precision), recall = median(recall), precision_Q1 = as.numeric(quantile(precision)[2]), precision_Q3 = as.numeric(quantile(precision)[4]), recall_Q1 = as.numeric(quantile(recall)[2]), recall_Q3 = as.numeric(quantile(recall)[4]))
-
+#evaluations <- evaluations[evaluations$k_value != 0,]
+#evaluations$k_value <- as.factor(evaluations$k_value)
+evaluations_agr <- ddply(evaluations,c("k_value", "task_type"),summarise, precision = mean(precision), recall = mean(recall))
+#evaluations_agr <- evaluations_agr[evaluations_agr$pred_int >=0.9,]
 print(evaluations_agr)
 
-pl <- ggplot(evaluations_agr)
+#evaluations_agr$k_value <- as.factor(evaluations_agr$k_value)
+evaluations_agr$k_value <- (evaluations_agr$k_value)
+#evaluations_agr$pred_int <- as.factor(evaluations_agr$pred_int)
+pl <- ggplot(evaluations_agr,aes(x=recall, y=precision))
+
 pl <- pl+
-	geom_path(aes(x=recall, y=precision),color = "grey", size=1)+
-	geom_rect(aes(color = k_value, xmin = recall_Q1, xmax = recall_Q3, ymin = precision_Q1, ymax = precision_Q3),fill = NA, size=0.5)+
-	geom_point(aes(x=recall, y=precision),color = "grey", size=10, alpha = 0.8)+
-	geom_text(aes(x=recall, y=precision,label=k_value))+
+	geom_line(size = 1, alpha = 0.8)+
+	#scale_colour_brewer(palette = "Oranges")+
+	scale_size(guide = FALSE)+
+	#scale_colour_continuous(low="red", high="blue")+
+	#geom_rect(aes(color = k_value, xmin = recall_Q1, xmax = recall_Q3, ymin = precision_Q1, ymax = precision_Q3),fill = NA, size=0.5)+
+	facet_grid(. ~ task_type) +
+	#geom_line(size = 2, alpha = 0.7)+
+	geom_point(size = 3, color = rgb(red= 58,green=145,blue= 255, maxColorValue = 255))+
+	geom_point(size = 3, shape = 1, color = "black")+
+	geom_text_repel(aes(label = paste(k_value,' mins',sep="")),size = 4) +
+	#geom_text(aes(x=recall, y=precision,label=k_value), size = 4, color = "black", alpha = 0.7)+
 	scale_x_continuous(limits = c(0.0, 1.0))+scale_y_continuous(limits = c(0.0, 1.0))+
-	scale_color_discrete(guide=FALSE)
+	theme(legend.position = "bottom", legend.box = "horizontal", legend.key.size = unit(0.1, "cm"), strip.text = element_text(size = 16),text = element_text(size=14, color = "black"), axis.text = element_text(size=10, color = "black"))
+	#labs(color='Prediction interval', shape = "Waiting time, minutes") 
+	#guides(colour=guide_colourbar(barheight=10,label.position="right"))
 
 print(pl)
-ggsave(pl, file="Approach/Plots/speed_ml.pdf", width=12, height=4)
+filename = file_type_1
+write.table(evaluations_agr, file = paste("Approach/Plots/",filename,".csv", sep=""), sep=",")
+ggsave(pl, file = paste("Approach/Plots/time_",filename,".pdf", sep=""), width=9, height=3)

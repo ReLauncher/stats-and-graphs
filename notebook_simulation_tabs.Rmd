@@ -1,0 +1,107 @@
+---
+title: "WWW2017 - Simulation Tabs"
+author: Pavel Kucherbaev, Florian Daniel, Maurizio Marchese
+date: September 22, 2016
+output:
+  md_document:
+    variant: markdown_github
+---
+
+```{r}
+library(sqldf)
+library(caret)
+library(rpart)
+library(rpart.plot)
+require(dplyr)
+```
+
+```{r}
+source("Approach/tasks_for_simulation.R")
+source("Approach/simulations_lib.R")
+source("Libs/logs_into_features.R")
+```
+
+```{r}
+task_list <- getSimulationTaskList()
+```
+
+```{r}
+simulate_speed_closed_tabs <- function(TASK_ID,GOOGLE_SPREADSHEET,TASK_TYPE){
+  results <- prepareUnitResults(TASK_ID,TASK_TYPE,GOOGLE_SPREADSHEET, FALSE)
+  tabActivity <- prepareTabActivityLogs(TASK_ID)
+  clickActivity <- prepareClicksLogs(TASK_ID)
+  
+  clickGiveUp <- sqldf("select * from clickActivity where element like '%#give-up-modal > DIV:nth-child(3) > A:nth-child(2)%' ") 
+  #'%#give-up-modal > DIV:nth-child(3) > A:nth-child(2)%'
+  
+  assignments_all <- sqldf(paste("select distinct a.assignment_id, case when r.re_unit_id is not null then 1 else -10 end as re_evaluation  
+                          from (select unit_id, assignment_id, max(dt_start) as dt_start from tabActivity group by unit_id, assignment_id ) a
+                                    left join clickGiveUp cg on cg.assignment_id = a.assignment_id and abs(cg.dt_start - a.dt_start) < 5
+                                    left join results r on r.re_unit_id = a.unit_id and abs(r.re_first_execution_start+r.re_execution_relative_end_num - a.dt_start) < 5
+                                where cg.assignment_id is null
+                                   "))
+  
+  
+  simulations <- data.frame(tp=NA, tn=NA, fp=NA,fn = NA,precision = NA, recall = NA,k_value=NA)[numeric(), ]
+  
+  
+  # AlgorithmDelay is the amount of time we wait since tab is closed to check there are no any new activity in the assignment
+  # new activity in the assignment is checked as also tab activities (active, hidden, closed).
+  for (AlgorithmDelay in seq(from=0*60,to=10*60, by=2.5*60)){
+    assignments_been_relaunched <- data.frame(assignment_id=as.character())
+    
+    timeStart <- min(results$re_first_execution_start) + AlgorithmDelay
+    
+    timeEnd <- timeStart + max(results$re_execution_relative_end_num)+600
+    timeStep <- 0.5*60
+    
+    for (currentTime in seq(from=timeStart,to=timeEnd,by= timeStep)){
+        #collect tabActivity logs for this task by the currentTime moment
+        tabsActivity <- prepareTabActivityLogs(TASK_ID, currentTime)
+        #collect clickActivity logs for this task by the currentTime moment
+        clickActivity <- prepareClicksLogs(TASK_ID, currentTime)
+        
+        #filter out only browser tab closed events which happened before current time - the delay
+        tabsClosed <- tabsActivity[tabsActivity$status == " closed",]
+        tabsClosed <- tabsClosed[tabsClosed$dt_start < (currentTime - AlgorithmDelay),]
+        
+        #filter out actions when workers Give up working on the assignment (the platform does relaunch)
+        clickGiveUp <- sqldf("select * from clickActivity where element like '%#give-up-modal > DIV:nth-child(3) > A:nth-child(2)%' ") #'%#give-up-modal > DIV:nth-child(3) > A:nth-child(2)%'
+        
+        query <- paste("
+                      select
+                      tc.assignment_id
+                      from tabsClosed tc
+                        left join assignments_been_relaunched abr on tc.assignment_id = abr.assignment_id
+                        left join tabsActivity ta on tc.assignment_id = ta.assignment_id and ta.dt_start > tc.dt_start
+                        -- 5 seconds is the delay to map results from CrowdFlower API and our logs. 5 seconds is the maximum delay could be take place
+                        left join results r on r.re_unit_id = tc.unit_id and abs(re_first_execution_start+r.re_execution_relative_end_num - tc.dt_start) < 5
+                        -- 2 seconds is the delay to map clicks to GiveUp button and browser tab close event
+                        left join clickGiveUp cg on cg.assignment_id = tc.assignment_id and abs(cg.dt_start - tc.dt_start) < 10
+                      where abr.assignment_id is null and r.re_unit_id is null and cg.assignment_id is null and ta.assignment_id is null
+                       ")
+        
+        new_candidates <- sqldf(query)
+        assignments_been_relaunched <- data.frame(assignment_id=union(as.character(assignments_been_relaunched$assignment_id),as.character(new_candidates$assignment_id)))
+    }
+    print(nrow(assignments_been_relaunched))
+    relaunching_summary <- summaryAlgorithm(assignments_all,assignments_been_relaunched)
+    relaunching_summary$k_value = AlgorithmDelay
+    
+    simulations <- rbind(simulations,relaunching_summary)
+
+  }
+  saveSimulationResults(simulations, paste("speed_closed_",TASK_ID,sep=""))
+  print(simulations)
+  simulations
+}
+```
+
+```{r}
+for (TASK_ID in seq(from=1,to=1,by=1)){
+  simulations <- simulate_speed_closed_tabs(task_list[TASK_ID,1],task_list[TASK_ID,2],task_list[TASK_ID,3]) 
+}
+
+```
+
+

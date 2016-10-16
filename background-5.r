@@ -26,20 +26,20 @@ for (i in 0:2){
 		}
 	}
 }
-all_data<- all_data[all_data$re_condition == "1. 0.01 USD",]
-all_data<- all_data[all_data$re_task=="2. Transcription",]
+#all_data<- all_data[all_data$re_condition == "1. 0.01 USD",]
+#all_data<- all_data[all_data$re_task=="2. Transcription",]
 #tl <- plotTimeline(all_data, faceting = T,tl_bar_detail_show = F)
 #ggsave(tl, file="Graphs/background_Timeline.pdf", width=12, height=6)
 #print(tl)
 
-pt <- plotDotsDurationVSIndexAccuracy(all_data)
-ggsave(pt, file="Graphs/background_Duration_Accuracy.pdf", width=9, height=3)
+pt <- plotDotsDurationVSIndexAccuracy(all_data,faceting = T)
+ggsave(pt, file="Graphs/background_Duration_Accuracy.pdf", width=8, height=8)
 print(pt)
 
 #hg <- plotHistogram(all_data, faceting = T)
 #ggsave(hg, file="Graphs/background_Histogram.pdf", width=12, height=6)
 #print(hg)
 
-cm <- plotCumulative(all_data)
-ggsave(cm, file="Graphs/background_Cumulative.pdf", width=9, height=3)
+cm <- plotCumulative(all_data,faceting = T)
+ggsave(cm, file="Graphs/background_Cumulative.pdf", width=8, height=8)
 print(cm)

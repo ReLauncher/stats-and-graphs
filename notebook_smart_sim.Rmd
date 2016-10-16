@@ -1,0 +1,80 @@
+---
+title: "WWW2017 - Simulation Tabs"
+author: Pavel Kucherbaev, Florian Daniel, Maurizio Marchese
+date: September 22, 2016
+output:
+  md_document:
+    variant: markdown_github
+---
+
+```{r}
+library(sqldf)
+library(caret)
+library(rpart)
+library(rpart.plot)
+require(dplyr)
+
+task_list <- getSimulationTaskList()
+```
+
+```{r}
+source("Approach/tasks_for_simulation.R")
+source("Libs/logs_into_features.R")
+source("Libs/simulations_general.R")
+source("Libs/simulations_techniques.R")
+```
+
+
+```{r}
+simulateScenario1 <- function(task){
+  
+  gold_standard <- getGoldStandard(task)
+  
+  results <- prepareUnitResults(task$id,task$type, task$spreadsheet,FALSE)
+  simulations_performance_pool <- data.frame(tp=NA, tn=NA, fp=NA,fn = NA,precision = NA, recall = NA,k_value=NA)[numeric(), ]
+
+  for (algDelayMin in seq(from=0,to=5,by=2.5)){
+    # simulation conditions
+    settings <- data.frame(AlgorithmDelay=c(algDelayMin*60))
+    settings$timeStart <- min(results$re_first_execution_start) + algDelayMin
+    settings$timeEnd <- as.numeric(settings$timeStart) + max(results$re_execution_relative_end_num)+600
+    settings$timeStep <- 1*60
+    
+    # run an instance of simulation
+    relaunched <- simulateRuntime(task, method_speed_tabs_closed, settings, results)
+    
+    # evaluate prediction performance during the simulation
+    performance <- evaluateSimulationPerformance(gold_standard, relaunched, 'speed')
+    # add to the pool of simulations
+    performance$k_value <- algDelayMin
+    simulations_performance_pool <- rbind(simulations_performance_pool,performance)
+  }
+  
+  saveEvaluationPerformance(simulations_performance_pool, paste("Speed_closed_test_",task$id,sep=""))
+  simulations_performance_pool
+}
+```
+
+
+
+```{r}
+# Simulation of Speed Closed
+for (i in seq(1:9)){
+  simulations <- simulateScenario1(task_list[i,])
+}
+
+```
+
+```{r}
+# Simulation of Speed Behavior Analysis
+training_set <- prepareTrainingSet(task_list[1,])
+closed  <- prepareTabActivityLogs(task_list[1,'id'])
+
+a <- closed[closed$assignment_id == training_set[20,'assignment_id'],]
+
+assignments <- prepareAssignments(task_list[1,'id'])
+features <- prepareAssignmentFeatures(task_list[1,'id'])
+page_act <- preparePageActivityLogs(task_list[1,'id'])
+```
+
+

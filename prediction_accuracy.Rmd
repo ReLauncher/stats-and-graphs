@@ -1,0 +1,60 @@
+---
+title: "WWW2017"
+author: Pavel Kucherbaev, Florian Daniel, Maurizio Marchese
+date: September 22, 2016
+output:
+  md_document:
+    variant: markdown_github
+---
+
+```{r}
+library(sqldf)
+library(caret)
+library(rpart)
+library(rpart.plot)
+require(dplyr)
+```
+
+```{r, echo = TRUE, width = 20, height = 20}
+source("Approach/tasks_for_simulation.r")
+source("Libs/logs_into_features.r")
+source("Approach/simulations_lib.r")
+#source("Approach/simulations_lib_linear.r")
+task_list <- getSimulationTaskList()
+
+task1 <- prepareFeaturesAssignmentsDataset(task_list[1,1], task_list[1,3], task_list[1,2])
+task1$re_evaluation <- as.factor(task1$re_evaluation)
+
+task2 <- prepareFeaturesAssignmentsDataset(task_list[2,1], task_list[2,3], task_list[2,2])
+task2$re_evaluation <- as.factor(task2$re_evaluation)
+
+task_2_features <- prepareFeaturesAssignmentsDataset(task_list[2,1],task_list[2,3], task_list[2,2])
+task_2_features <- prepareEvaluationTrainingSet(task_2_features)
+task_4_features <- prepareFeaturesAssignmentsDataset(task_list[4,1],task_list[4,3], task_list[4,2])
+task_4_features <- prepareEvaluationTrainingSet(task_4_features)
+task_key_features <- prepareKeysActivityLogs(task_list[2,1])
+
+# DO NOT use tasks 1 and 4
+training_task = 8
+test_task = 9
+simulation <- simulate_speed_ml(task_list[test_task,1], task_list[test_task,2],task_list[training_task,1], task_list[training_task,2],1)
+
+for(i in seq(1:9)){
+	simulate_speed_linear(task_list[i,1], task_list[i,2])
+}
+
+for(task_type in c(1,4,7)){
+	for(training_task in c(0,1,2)){
+	  for(test_task in c(0,1,2)){
+	    print(paste(task_type,training_task,test_task,sep=" "))
+	    if (test_task != training_task){
+  		  simulate_accuracy_ml(task_list[task_type+test_task,1], task_list[task_type+test_task,2],task_list[task_type+training_task,1], task_list[task_type+training_task,2],0.2)
+	    }
+	  }
+	}
+}
+```
+
+```{r}
+SIMULATION_TASKS
+```

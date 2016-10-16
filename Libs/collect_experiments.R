@@ -47,19 +47,26 @@ reformatExperimentData <- function(data, job_id = "0", title = "task", condition
 	data$re_task <- title
 	data$re_condition <- condition
 
-	data$execution_end <- mdy_hms(data$X_created_at)
-	data$execution_start <- mdy_hms(data$X_started_at)
+	data$re_execution_end <- mdy_hms(data$X_created_at)
+	data$re_execution_start <- mdy_hms(data$X_started_at)
 
 	
-	data$re_duration <- difftime(data$execution_end, data$execution_start, units = "secs") 
+	data$re_duration <- difftime(data$re_execution_end, data$re_execution_start, units = "secs") 
 	data$re_duration_num <- as.numeric(data$re_duration)
-	data$first_execution_start <- min(data$execution_start)
+	data$first_execution_start <- min(data$re_execution_start)
 	data$re_first_execution_start <- data$first_execution_start 
 
-	data$re_execution_relative_end <- dumb_start_time + (data$execution_end - data$first_execution_start)
+	data$re_execution_relative_end <- dumb_start_time + (data$re_execution_end - data$first_execution_start)
 	data$re_execution_relative_start <- data$re_execution_relative_end - data$re_duration
-	data$re_execution_relative_start_num <- as.numeric(data$re_execution_relative_start - dumb_start_time)
-	data$re_execution_relative_end_num <- as.numeric(data$re_execution_relative_end - dumb_start_time)
+	
+	data$re_execution_relative_start_num <- data$re_execution_relative_start - dumb_start_time
+	data$re_execution_relative_end_num <- data$re_execution_relative_end - dumb_start_time
+
+	units(data$re_execution_relative_start_num) <- "secs"
+	units(data$re_execution_relative_end_num) <- "secs"
+
+	data$re_execution_relative_start_num <- as.numeric(data$re_execution_relative_start_num)
+	data$re_execution_relative_end_num <- as.numeric(data$re_execution_relative_end_num)
 	
 	# ============================================
 	# Take only CrowdFlower or ReLauncher columns

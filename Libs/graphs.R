@@ -21,9 +21,9 @@ source("secret.R")
 #names(myColors) <- levels(c("0","1","2","3","-1"))
 #colScale <- scale_colour_manual(name = "re_evaluation",values = myColors)
 evaluation_color <- scale_colour_manual(guide=FALSE,
-  values = c("-2" = "azure4", "-1" = "orange", "0" = "#FF5555","1" = "black","2" = "grey"))
+  values = c("-2" = "black", "-1" = "orange", "0" = "#FF5555","1" = "black","2" = "#eeeeee"))
 evaluation_fill <- scale_fill_manual(
-  values = c("-2" = "azure4", "-1" = "orange", "0" = "#FF5555","1" = "black","2" = "grey"))
+  values = c("-2" = "black", "-1" = "orange", "0" = "#FF5555","1" = "black","2" = "#eeeeee"))
 
 theme_settings <- theme(
 	text = element_text(size=8, color = "black"), 
@@ -67,7 +67,7 @@ plotTimeline <- function(data, width = 20, height = 5, faceting = F,
 
 	# FORM GRAPH
 	graph_timeline <- ggplot(timeline_data)
-	graph_timeline <- graph_timeline + geom_rect(aes(color = tl_bar_color, fill = tl_bar_color,  xmin = tl_bar_start, xmax = tl_bar_end, y = tl_y, ymin = tl_y_coord - 0.4  , ymax = tl_y_coord + 0.4))
+	graph_timeline <- graph_timeline + geom_rect(color = "white", aes(fill = tl_bar_color,  xmin = tl_bar_start, xmax = tl_bar_end, y = tl_y, ymin = tl_y_coord - 0.475  , ymax = tl_y_coord + 0.475))
 	if (tl_bar_detail_show){
 		graph_timeline <- graph_timeline + geom_text(data=timeline_data, aes(x= tl_bar_start + (re_duration_num/2), y=tl_y_coord, label=tl_bar_detail), size=2,color = tl_bar_detail_color)	
 	}
